@@ -15,22 +15,24 @@ function johnson_subsets(simplex_length::Integer)
     subsets
 end
 
-function initial_deltas(simplex_length, T)
+function initial_deltas_impl(simplex_length, T)
     num_subsets = num_johnson_subsets(simplex_length)
-    constructor = :(SVector{$num_subsets, SVector{$simplex_length, $T}})
 
-    # Most of the initial deltas are just set to zeros
-    args = [:(zeros(SVector{$simplex_length, $T})) for i in 1:num_subsets]
+    expr = quote
+        deltas = zeros(SVector{$num_subsets, SVector{$simplex_length, $T}})
+    end
 
-    # But we want to set the weight of every singleton subset to 1. We can
-    # do this by actually modifying our call to the SVector constructor
-    # instead of modifying the entries later.
+    # Set the weight of every singleton subset to 1.
     for i in 1:simplex_length
         elements = [:(zero($T)) for j in 1:simplex_length]
         elements[i] = :(one($T))
-        args[2^(i - 1)] = Expr(:call, :(SVector{$simplex_length, $T}), elements...)
+        arg = Expr(:call, :(SVector{$simplex_length, $T}), elements...)
+
+        push!(expr.args, quote
+            deltas = setindex(deltas, $(arg), $(2^(i - 1)))
+        end)
     end
-    Expr(:call, constructor, args...)
+    expr
 end
 
 """
@@ -45,7 +47,7 @@ function projection_weights_impl{M, N, T}(::Type{SVector{M, SVector{N, T}}})
     complements = !subsets
 
     expr = quote
-        deltas = $(initial_deltas(M, T))
+        deltas = $(initial_deltas_impl(M, T))
     end
 
     for s in 1:(num_subsets - 1)
