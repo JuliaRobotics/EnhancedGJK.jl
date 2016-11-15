@@ -26,3 +26,7 @@ end
     weights = projection_weights(simplex)
     @test isapprox(weights, [0.5, 0.5, 0.0, 0.0])
 end
+
+@testset "benchmarks" begin
+    include("../perf/runbenchmarks.jl")
+end
