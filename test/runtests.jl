@@ -38,6 +38,7 @@ end
         simplex = SVector{4}([rand(SVector{3, Float64}) for i in 1:4])
         weights = projection_weights(simplex)
         @test all(weights .>= 0)
+        @test isapprox(sum(weights), 1)
         @test isapprox(weights, projection_weights_reference(simplex))
     end
 end
