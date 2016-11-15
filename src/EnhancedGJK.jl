@@ -1,5 +1,7 @@
 module EnhancedGJK
 
-# package code goes here
+using StaticArrays
+
+include("johnson_distance.jl")
 
 end # module
