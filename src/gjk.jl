@@ -41,6 +41,7 @@ function CollisionCache{N}(::Type{Val{N}}, geomA, geomB)
         direction = 2 * (rand(N) .- 0.5)
         candidate = Difference(support_vector_max(geomA, direction, simplex_points[1].a),
                                support_vector_max(geomB, -direction, simplex_points[1].b))
+        # @show simplex_points candidate
         mat = hcat(edgespan(map(p -> value(p.a) - value(p.b), [simplex_points..., candidate]))...)
         if det(mat' * mat) > 1e-3
             push!(simplex_points, candidate)
@@ -78,17 +79,17 @@ end
 
 function support_vector_max(geometry, direction, initial_guess::Tagged)
     best_pt, score = gt.support_vector_max(geometry, direction)
-    Tagged(convert(SVector, best_pt))
+    Tagged(svector(best_pt))
 end
 
 function support_vector_max{N, T}(pt::gt.Vec{N, T}, direction, initial_guess::Tagged)
-    Tagged(convert(SVector, pt))
+    Tagged(svector(pt))
 end
 
 
 function support_vector_max{N, T}(mesh::gt.HomogenousMesh{gt.Point{N, T}}, direction, initial_guess::Tagged)
     best_arg, best_value = gt.argmax(x-> x⋅direction, gt.vertices(mesh))
-    best_vec = convert(gt.Vec{N, T}, best_arg)
+    best_vec = svector(best_arg)
     Tagged(best_vec)
 end
 
@@ -96,7 +97,7 @@ any_inside(pt::SVector) = Tagged(pt)
 support_vector_max(pt::SVector, direction, initial_guess::Tagged) = Tagged(pt)
 
 function gjk!(cache::CollisionCache, poseA::Transformation, poseB::Transformation)
-    gjk!(dimension(cache.bodyA), cache, poseA, poseB)
+    gjk!(dimension(typeof(cache.bodyA)), cache, poseA, poseB)
 end
 
 function transform_simplex(cache::CollisionCache, poseA, poseB)
@@ -108,7 +109,7 @@ end
 end
 
 function transform_simplex_impl(N, cache, poseA, poseB)
-    Expr(:call, :(MVector),
+    Expr(:call, :(SVector),
         [:((poseA(value(cache.simplex_points[$i].a)) -
             poseB(value(cache.simplex_points[$i].b)))) for i in 1:(N + 1)]...)
 end
@@ -131,7 +132,7 @@ function gjk!{N}(::Type{Val{N}}, cache::CollisionCache, poseA::Transformation, p
             break
         end
         best_point = dot(weights, simplex)
-        @show best_point
+        # @show best_point
         cache.closest_point = dot(weights, cache.simplex_points)
 
         direction = -best_point
@@ -150,13 +151,14 @@ function gjk!{N}(::Type{Val{N}}, cache::CollisionCache, poseA::Transformation, p
             support_vector_max(cache.bodyB, -direction_in_B, starting_vertex.b))
         improved_point = poseA(value(improved_vertex.a)) - poseB(value(improved_vertex.b))
         score = dot(improved_point, direction)
-        @show dot(best_point, direction)
-        @show improved_point score
+        # @show dot(best_point, direction)
+        # @show improved_point score
         if score <= dot(best_point, direction) + atol
             break
         else
             cache.simplex_points[index_to_replace] = improved_vertex
-            simplex[index_to_replace] = improved_point
+            simplex = setindex(simplex, improved_point, index_to_replace)
+            # simplex[index_to_replace] = improved_point
         end
     end
     return simplex, best_point, in_interior

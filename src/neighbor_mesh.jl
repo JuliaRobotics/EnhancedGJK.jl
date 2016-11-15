@@ -52,10 +52,10 @@ function support_vector_max(mesh::NeighborMesh, direction,
     score = dot(direction, best.point)
     while true
         candidates = mesh.neighbors[best.tag]
-        neighbor_index, best_neighbor_score = gt.argmax(n -> dot(direction, convert(SVector, verts[n])), candidates)
+        neighbor_index, best_neighbor_score = gt.argmax(n -> dot(direction, svector(verts[n])), candidates)
         if best_neighbor_score > score || (best_neighbor_score == score && neighbor_index > best.tag)
             score = best_neighbor_score
-            best = Tagged(convert(SVector, verts[neighbor_index]), neighbor_index)
+            best = Tagged(svector(verts[neighbor_index]), neighbor_index)
         else
             break
         end

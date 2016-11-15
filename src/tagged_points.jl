@@ -5,7 +5,7 @@ end
 
 Tagged{P}(point::P) = Tagged(point, nothing)
 
-# *(n::Number, t::Tagged) = n * value(t)
+*(n::Number, t::Tagged) = n * value(t)
 
 value(t::Tagged) = t.point
 

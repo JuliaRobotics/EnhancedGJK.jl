@@ -12,7 +12,7 @@ import Base: dot, zero, +, *, @pure, convert
 end
 
 function svector_impl{N, T}(::Union{Type{gt.Vec{N, T}}, Type{gt.Point{N, T}}})
-    Expr(:call, :(SVector{$N, $T}), [v[$i] for i in 1:N]...)
+    Expr(:call, :(SVector{$N, $T}), [:(v[$i]) for i in 1:N]...)
 end
 
 include("tagged_points.jl")
