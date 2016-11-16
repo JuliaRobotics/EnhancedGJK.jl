@@ -3,11 +3,8 @@ immutable Difference{PA, PB}
     b::PB
 end
 
-dot(n::Number, d::Difference) = Difference(dot(n, d.a), dot(n, d.b))
 *(n::Number, d::Difference) = Difference(*(n, d.a), *(n, d.b))
-dot(n::Number, t::Tagged) = n * value(t)
 +(d1::Difference, d2::Difference) = Difference(d1.a + d2.a, d1.b + d2.b)
-zero{PA, PB}(d::Difference{PA, PB}) = Difference(zero(d.a), zero(d.b))
 
 immutable CollisionCache{GeomA, GeomB, M, D <: Difference}
     bodyA::GeomA
@@ -19,10 +16,6 @@ function CollisionCache(geomA, geomB)
     N = dimension(typeof(geomA))
     @assert dimension(typeof(geomA)) == dimension(typeof(geomB))
     CollisionCache(N, geomA, geomB)
-end
-
-function edgespan(points::AbstractVector)
-    span = [p - points[1] for p in points[2:end]]
 end
 
 @generated function initial_simplex{N}(dim::Type{Val{N}}, geomA, geomB)
