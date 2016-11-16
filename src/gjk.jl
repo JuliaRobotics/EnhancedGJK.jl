@@ -7,10 +7,7 @@ dot(n::Number, d::Difference) = Difference(dot(n, d.a), dot(n, d.b))
 *(n::Number, d::Difference) = Difference(*(n, d.a), *(n, d.b))
 dot(n::Number, t::Tagged) = n * value(t)
 +(d1::Difference, d2::Difference) = Difference(d1.a + d2.a, d1.b + d2.b)
-
 zero{PA, PB}(d::Difference{PA, PB}) = Difference(zero(d.a), zero(d.b))
-# zero{PA, PB}(::Type{Difference{PA, PB}}) = Difference(zero(PA), zero(PB))
-
 
 immutable CollisionCache{GeomA, GeomB, M, D <: Difference}
     bodyA::GeomA
@@ -28,9 +25,15 @@ function edgespan(points::AbstractVector)
     span = [p - points[1] for p in points[2:end]]
 end
 
+@generated function initial_simplex{N}(dim::Type{Val{N}}, geomA, geomB)
+    return quote
+        interior_point = Difference(any_inside(geomA), any_inside(geomB))
+        simplex = $(Expr(:call, :(MVector), [:(interior_point) for i in 1:(N + 1)]...))
+    end
+end
+
 function CollisionCache{N}(::Type{Val{N}}, geomA, geomB)
-    interior_point = Difference(any_inside(geomA), any_inside(geomB))
-    simplex = MVector{N + 1}([interior_point for i in 1:N+1]...)
+    simplex = initial_simplex(Val{N}, geomA, geomB)
     CollisionCache(geomA, geomB, simplex)
 end
 
