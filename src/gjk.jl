@@ -36,14 +36,14 @@ function CollisionCache{N}(::Type{Val{N}}, geomA, geomB)
     # Search for a starting simplex in the Minkowski difference by sampling
     # random directions until we find a set of points with linearly independent
     # edgespan.
-    max_iter = 100
+    max_iter = 200
     for i in 1:max_iter
         direction = 2 * (rand(N) .- 0.5)
         candidate = Difference(support_vector_max(geomA, direction, simplex_points[1].a),
                                support_vector_max(geomB, -direction, simplex_points[1].b))
         # @show simplex_points candidate
         mat = hcat(edgespan(map(p -> value(p.a) - value(p.b), [simplex_points..., candidate]))...)
-        if det(mat' * mat) > 1e-3
+        if det(mat' * mat) > 1e-6
             push!(simplex_points, candidate)
             if length(simplex_points) > N
                 simplex = MVector{N+1}(simplex_points)
@@ -132,27 +132,33 @@ function gjk!{N}(::Type{Val{N}}, cache::CollisionCache, poseA::Transformation, p
             break
         end
         best_point = dot(weights, simplex)
-        # @show best_point
         cache.closest_point = dot(weights, cache.simplex_points)
 
         direction = -best_point
         direction_in_A = rotAinv * direction
         direction_in_B = rotBinv * direction
 
-        best_vertex_index, worst_vertex_index =
-        argminmax(1:length(cache.simplex_points)) do i
-            d = cache.simplex_points[i]
-            dot(value(d.a), direction_in_A) + dot(value(d.b), -direction_in_B)
+        starting_vertex_index = 1
+        starting_vertex = cache.simplex_points[starting_vertex_index]
+        starting_vertex_score =
+            dot(value(starting_vertex.a), direction_in_A) +
+            dot(value(starting_vertex.b), direction_in_B)
+        for j in 2:length(cache.simplex_points)
+            candidate = cache.simplex_points[j]
+            candidate_score =
+                dot(value(candidate.a), direction_in_A) +
+                dot(value(candidate.b), direction_in_B)
+            if candidate_score > starting_vertex_score
+                starting_vertex_score = candidate_score
+                starting_vertex = candidate
+            end
         end
-        starting_vertex = cache.simplex_points[best_vertex_index]
 
         improved_vertex = Difference(
             support_vector_max(cache.bodyA, direction_in_A, starting_vertex.a),
             support_vector_max(cache.bodyB, -direction_in_B, starting_vertex.b))
         improved_point = poseA(value(improved_vertex.a)) - poseB(value(improved_vertex.b))
         score = dot(improved_point, direction)
-        # @show dot(best_point, direction)
-        # @show improved_point score
         if score <= dot(best_point, direction) + atol
             break
         else

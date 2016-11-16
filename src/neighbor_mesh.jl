@@ -45,18 +45,25 @@ end
 
 any_inside(mesh::NeighborMesh) = Tagged(svector( first(gt.vertices(mesh.mesh))), 1)
 
-function support_vector_max(mesh::NeighborMesh, direction,
-                                  initial_guess::Tagged)
+function support_vector_max{P, Tag}(mesh::NeighborMesh, direction,
+                                  initial_guess::Tagged{P, Tag})
     verts = gt.vertices(mesh.mesh)
-    best = Tagged(svector(verts[initial_guess.tag]), initial_guess.tag)
+    best = Tagged{P, Tag}(svector(verts[initial_guess.tag]), initial_guess.tag)
     score = dot(direction, best.point)
     while true
         candidates = mesh.neighbors[best.tag]
-        neighbor_index, best_neighbor_score = gt.argmax(n -> dot(direction, svector(verts[n])), candidates)
-        if best_neighbor_score > score || (best_neighbor_score == score && neighbor_index > best.tag)
-            score = best_neighbor_score
-            best = Tagged(svector(verts[neighbor_index]), neighbor_index)
-        else
+        improved = false
+        for index in candidates
+            candidate_point = svector(verts[index])
+            candidate_score = dot(direction, candidate_point)
+            if candidate_score > score || (candidate_score == score && index > best.tag)
+                score = candidate_score
+                best = Tagged{P, Tag}(candidate_point, index)
+                improved = true
+                break
+            end
+        end
+        if !improved
             break
         end
     end
