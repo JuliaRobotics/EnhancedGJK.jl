@@ -5,7 +5,6 @@ import GeometryTypes: Vec
 using FileIO
 using MeshIO
 using Base.Test
-import DrakeVisualizer
 import StaticArrays: SVector
 
 @testset "johnson distance subalgorithm" begin
@@ -22,19 +21,28 @@ end
     @test isapprox(result.closest_point_in_body.b, [0.0, 0.0])
 end
 
-@testset "accelerated mesh gjk" begin
-    mesh = DrakeVisualizer.contour_mesh(x -> sum((x - [2, -1.5, 0]).^2) - 1, [-1.5, -1.5, -1.5], [1.5, 1.5, 1.5])
-    acc = EnhancedGJK.NeighborMesh(mesh)
-    pt = Vec(0., 0, 0)
-    cache = EnhancedGJK.CollisionCache(acc, pt)
-    result = EnhancedGJK.gjk!(cache, IdentityTransformation(), IdentityTransformation())
-    @test isapprox(result.signed_distance, norm([1.2, -0.9, 0]))
-    @test isapprox(result.closest_point_in_body.a, [1.2, -0.9, 0.0])
-    @test isapprox(result.closest_point_in_body.b, [0.0, 0.0, 0.0])
-end
-
 @testset "mesh to mesh" begin
     mesh = load("meshes/r_foot_chull.obj")
+    dx = 1.0
+    foot_length = 0.172786 + 0.090933
+
+    cache = EnhancedGJK.CollisionCache(mesh, mesh)
+    result = EnhancedGJK.gjk!(cache, IdentityTransformation(), Translation(SVector(dx, 0, 0)))
+    @test isapprox(result.signed_distance, dx - foot_length, atol=1e-3)
+
+    cache = EnhancedGJK.CollisionCache(mesh, mesh)
+    result = EnhancedGJK.gjk!(cache, Translation(SVector(dx, 0, 0)), IdentityTransformation())
+    @test isapprox(result.signed_distance, dx - foot_length, atol=1e-3)
+
+    cache = EnhancedGJK.CollisionCache(mesh, mesh)
+    expected_penetration = 0.01
+    result = EnhancedGJK.gjk!(cache, IdentityTransformation(), Translation(foot_length - expected_penetration, 0, 0))
+    # TODO: penetration distance is inconsistent and inaccurate
+    @test result.signed_distance < 0
+end
+
+@testset "neighbor mesh to mesh" begin
+    mesh = EnhancedGJK.NeighborMesh(load("meshes/r_foot_chull.obj"))
     dx = 1.0
     foot_length = 0.172786 + 0.090933
 
