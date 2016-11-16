@@ -12,11 +12,10 @@ zero{PA, PB}(d::Difference{PA, PB}) = Difference(zero(d.a), zero(d.b))
 # zero{PA, PB}(::Type{Difference{PA, PB}}) = Difference(zero(PA), zero(PB))
 
 
-type CollisionCache{GeomA, GeomB, M, D1 <: Difference, D2 <: Difference}
+immutable CollisionCache{GeomA, GeomB, M, D <: Difference}
     bodyA::GeomA
     bodyB::GeomB
-    simplex_points::MVector{M, D1}
-    closest_point::D2
+    simplex_points::MVector{M, D}
 end
 
 function CollisionCache(geomA, geomB)
@@ -30,32 +29,12 @@ function edgespan(points::AbstractVector)
 end
 
 function CollisionCache{N}(::Type{Val{N}}, geomA, geomB)
-    simplex_points = [Difference(any_inside(geomA), any_inside(geomB))]
-    closest_point = Difference(value(simplex_points[1].a), value(simplex_points[1].b))
-
-    # Search for a starting simplex in the Minkowski difference by sampling
-    # random directions until we find a set of points with linearly independent
-    # edgespan.
-    max_iter = 200
-    for i in 1:max_iter
-        direction = 2 * (rand(N) .- 0.5)
-        candidate = Difference(support_vector_max(geomA, direction, simplex_points[1].a),
-                               support_vector_max(geomB, -direction, simplex_points[1].b))
-        # @show simplex_points candidate
-        mat = hcat(edgespan(map(p -> value(p.a) - value(p.b), [simplex_points..., candidate]))...)
-        if det(mat' * mat) > 1e-6
-            push!(simplex_points, candidate)
-            if length(simplex_points) > N
-                simplex = MVector{N+1}(simplex_points)
-                return CollisionCache(geomA, geomB, simplex, closest_point)
-            end
-        end
-    end
-
-    error("Could not find a sensible initial simplex. Both geometries might have zero volume.")
+    interior_point = Difference(any_inside(geomA), any_inside(geomB))
+    simplex = MVector{N + 1}([interior_point for i in 1:N+1]...)
+    CollisionCache(geomA, geomB, simplex)
 end
 
-dimension{G1, G2, M, D1, D2}(::Type{CollisionCache{G1, G2, M, D1, D2}}) = dimension(G1)
+dimension{G1, G2, M, D}(::Type{CollisionCache{G1, G2, M, D}}) = dimension(G1)
 
 function support_vector_max(geometry, direction, initial_guess::Tagged)
     best_pt, score = gt.support_vector_max(geometry, direction)
@@ -169,21 +148,3 @@ function penetration_distance(simplex)
     end
     return penetration_distance
 end
-
-# function signed_distance!(cache::CollisionCache, poseA::Transformation, poseB::Transformation)
-#     simplex, best_point, in_collision = gjk!(cache, poseA, poseB)
-#     separation = norm(best_point)
-#
-#     if in_collision
-#         _, penetration_distance = gt.argmax(1:length(simplex)) do i
-#             face = simplex_face(simplex, i)
-#             weights = projection_weights(face)
-#             closest_point = dot(weights, face)
-#             distance_to_face = norm(closest_point)
-#             -distance_to_face
-#         end
-#         return penetration_distance
-#     else
-#         return separation
-#     end
-# end
