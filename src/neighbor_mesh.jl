@@ -71,4 +71,3 @@ function support_vector_max{P, Tag}(mesh::NeighborMesh, direction,
 end
 
 @pure dimension{M}(::Type{NeighborMesh{M}}) = dimension(M)
-@pure scalartype{M}(::Type{NeighborMesh{M}}) = scalartype(M)

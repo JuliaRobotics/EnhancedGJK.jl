@@ -14,9 +14,10 @@ end
     simplex = SVector{3}(SVector{2, Float64}[[1., 0], [2., 0], [1., 1]])
     pt = SVector(0., 0)
     cache = EnhancedGJK.CollisionCache(simplex, pt);
-    simplex, best_pt, in_interior = EnhancedGJK.gjk!(cache, IdentityTransformation(), IdentityTransformation())
-    @show simplex best_pt in_interior
-    @test isapprox(norm(best_pt), 1.0)
+    result = EnhancedGJK.gjk!(cache, IdentityTransformation(), IdentityTransformation())
+    @test isapprox(result.signed_distance, 1.0)
+    @test isapprox(result.closest_point_in_body.a, [1.0, 0.0])
+    @test isapprox(result.closest_point_in_body.b, [0.0, 0.0])
 end
 
 @testset "accelerated mesh gjk" begin
@@ -24,9 +25,10 @@ end
     acc = EnhancedGJK.NeighborMesh(mesh)
     pt = Vec(0., 0, 0)
     cache = EnhancedGJK.CollisionCache(acc, pt)
-    simplex, best_pt, in_interior = EnhancedGJK.gjk!(cache, IdentityTransformation(), IdentityTransformation())
-    @test isapprox(best_pt, [1.2, -0.9, 0.0])
-    @test in_interior == false
+    result = EnhancedGJK.gjk!(cache, IdentityTransformation(), IdentityTransformation())
+    @test isapprox(result.signed_distance, norm([1.2, -0.9, 0]))
+    @test isapprox(result.closest_point_in_body.a, [1.2, -0.9, 0.0])
+    @test isapprox(result.closest_point_in_body.b, [0.0, 0.0, 0.0])
 end
 
 @testset "benchmarks" begin

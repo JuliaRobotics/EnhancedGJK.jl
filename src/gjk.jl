@@ -57,26 +57,6 @@ end
 
 dimension{G1, G2, M, D1, D2}(::Type{CollisionCache{G1, G2, M, D1, D2}}) = dimension(G1)
 
-function argminmax(f::Function, iter)
-    state = start(iter)
-    min_arg, state = next(iter, state)
-    max_arg = min_arg
-    min_val = f(min_arg)
-    max_val = min_val
-    while !done(iter, state)
-        arg, state = next(iter, state)
-        val = f(arg)
-        if val > max_val
-            max_arg = arg
-            max_val = val
-        elseif val < min_val
-            min_arg = arg
-            min_val = val
-        end
-    end
-    min_arg, max_arg
-end
-
 function support_vector_max(geometry, direction, initial_guess::Tagged)
     best_pt, score = gt.support_vector_max(geometry, direction)
     Tagged(svector(best_pt))
@@ -96,10 +76,6 @@ end
 any_inside(pt::SVector) = Tagged(pt)
 support_vector_max(pt::SVector, direction, initial_guess::Tagged) = Tagged(pt)
 
-function gjk!(cache::CollisionCache, poseA::Transformation, poseB::Transformation)
-    gjk!(dimension(typeof(cache.bodyA)), cache, poseA, poseB)
-end
-
 function transform_simplex(cache::CollisionCache, poseA, poseB)
     transform_simplex(dimension(typeof(cache)), cache, poseA, poseB)
 end
@@ -114,25 +90,34 @@ function transform_simplex_impl(N, cache, poseA, poseB)
             poseB(value(cache.simplex_points[$i].b)))) for i in 1:(N + 1)]...)
 end
 
-function gjk!{N}(::Type{Val{N}}, cache::CollisionCache, poseA::Transformation, poseB::Transformation)
+immutable GJKResult{M, N, T}
+    simplex::SVector{M, SVector{N, T}}
+    closest_point_in_body::Difference{SVector{N, T}, SVector{N, T}}
+    signed_distance::T
+end
+
+function gjk!(cache::CollisionCache, poseA::Transformation, poseB::Transformation)
     const max_iter = 100
     const atol = 1e-6
-    const origin = zeros(SVector{N, Float64})
-    const rotAinv = transform_deriv(inv(poseA), origin)
-    const rotBinv = transform_deriv(inv(poseB), origin)
+    const rotAinv = transform_deriv(inv(poseA), 0)
+    const rotBinv = transform_deriv(inv(poseB), 0)
     simplex = transform_simplex(cache, poseA, poseB)
-    in_interior = false
-    best_point = simplex[1]
+    iter = 1
+    # in_interior = false
+    # best_point = simplex[1]
 
-    for k in 1:max_iter
+    while true
         weights = projection_weights(simplex)
         min_weight, index_to_replace = findmin(weights)
-        in_interior = min_weight > 0
-        if in_interior
-            break
+        if min_weight > 0
+            # in collision
+            return GJKResult(
+                simplex,
+                dot(weights, cache.simplex_points),
+                penetration_distance(simplex)
+            )
         end
         best_point = dot(weights, simplex)
-        # cache.closest_point = dot(weights, cache.simplex_points)
 
         direction = -best_point
         direction_in_A = rotAinv * direction
@@ -159,31 +144,46 @@ function gjk!{N}(::Type{Val{N}}, cache::CollisionCache, poseA::Transformation, p
             support_vector_max(cache.bodyB, -direction_in_B, starting_vertex.b))
         improved_point = poseA(value(improved_vertex.a)) - poseB(value(improved_vertex.b))
         score = dot(improved_point, direction)
-        if score <= dot(best_point, direction) + atol
-            break
+        if score <= dot(best_point, direction) + atol || iter >= max_iter
+            return GJKResult(
+                simplex,
+                dot(weights, cache.simplex_points),
+                norm(best_point)
+            )
         else
             cache.simplex_points[index_to_replace] = improved_vertex
             simplex = setindex(simplex, improved_point, index_to_replace)
             # simplex[index_to_replace] = improved_point
         end
-    end
-    return simplex, best_point, in_interior
-end
-
-function signed_distance!(cache::CollisionCache, poseA::Transformation, poseB::Transformation)
-    simplex, best_point, in_collision = gjk!(cache, poseA, poseB)
-    separation = norm(best_point)
-
-    if in_collision
-        _, penetration_distance = gt.argmax(1:length(simplex)) do i
-            face = simplex_face(simplex, i)
-            weights = projection_weights(face)
-            closest_point = dot(weights, face)
-            distance_to_face = norm(closest_point)
-            -distance_to_face
-        end
-        return penetration_distance
-    else
-        return separation
+        iter += 1
     end
 end
+
+function penetration_distance(simplex)
+    _, penetration_distance = gt.argmax(1:length(simplex)) do i
+        face = simplex_face(simplex, i)
+        weights = projection_weights(face)
+        closest_point = dot(weights, face)
+        distance_to_face = norm(closest_point)
+        -distance_to_face
+    end
+    return penetration_distance
+end
+
+# function signed_distance!(cache::CollisionCache, poseA::Transformation, poseB::Transformation)
+#     simplex, best_point, in_collision = gjk!(cache, poseA, poseB)
+#     separation = norm(best_point)
+#
+#     if in_collision
+#         _, penetration_distance = gt.argmax(1:length(simplex)) do i
+#             face = simplex_face(simplex, i)
+#             weights = projection_weights(face)
+#             closest_point = dot(weights, face)
+#             distance_to_face = norm(closest_point)
+#             -distance_to_face
+#         end
+#         return penetration_distance
+#     else
+#         return separation
+#     end
+# end
