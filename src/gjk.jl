@@ -132,7 +132,7 @@ function gjk!{N}(::Type{Val{N}}, cache::CollisionCache, poseA::Transformation, p
             break
         end
         best_point = dot(weights, simplex)
-        cache.closest_point = dot(weights, cache.simplex_points)
+        # cache.closest_point = dot(weights, cache.simplex_points)
 
         direction = -best_point
         direction_in_A = rotAinv * direction
@@ -171,23 +171,18 @@ function gjk!{N}(::Type{Val{N}}, cache::CollisionCache, poseA::Transformation, p
 end
 
 function signed_distance!(cache::CollisionCache, poseA::Transformation, poseB::Transformation)
-    signed_distance!(dimension(cache.bodyA), cache, poseA, poseB)
-end
-
-function signed_distance!{N}(dim::Type{Val{N}}, cache::CollisionCache, poseA::Transformation, poseB::Transformation)
-    simplex, separation, in_collision = gjk!(dim, cache, poseA, poseB)
+    simplex, best_point, in_collision = gjk!(cache, poseA, poseB)
+    separation = norm(best_point)
 
     if in_collision
-        gt.with_immutable(simplex) do s
-            const origin = zero(gt.Vec{N, Float64})
-            _, penetration_distance = gt.argmax(1:length(s)) do i
-                face = gt.simplex_face(s, i)
-                weights, _ = projection_weights(origin, face)
-                distance_to_face = norm(sum(face[i] * weights[i] for i in 1:length(face)))
-                -distance_to_face
-            end
-            return penetration_distance
+        _, penetration_distance = gt.argmax(1:length(simplex)) do i
+            face = simplex_face(simplex, i)
+            weights = projection_weights(face)
+            closest_point = dot(weights, face)
+            distance_to_face = norm(closest_point)
+            -distance_to_face
         end
+        return penetration_distance
     else
         return separation
     end
