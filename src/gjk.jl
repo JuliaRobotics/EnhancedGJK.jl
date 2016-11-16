@@ -68,7 +68,7 @@ end
 
 
 function support_vector_max{N, T}(mesh::gt.HomogenousMesh{gt.Point{N, T}}, direction, initial_guess::Tagged)
-    best_arg, best_value = gt.argmax(x-> x⋅direction, gt.vertices(mesh))
+    best_arg, best_value = gt.argmax(x-> dot(svector(x), direction), gt.vertices(mesh))
     best_vec = svector(best_arg)
     Tagged(best_vec)
 end

@@ -1,9 +1,11 @@
 using EnhancedGJK
 import EnhancedGJK: projection_weights, projection_weights_reference
-import CoordinateTransformations: IdentityTransformation
+import CoordinateTransformations: IdentityTransformation, Translation
 import GeometryTypes: Vec
-import DrakeVisualizer: contour_mesh
+using FileIO
+using MeshIO
 using Base.Test
+import DrakeVisualizer
 import StaticArrays: SVector
 
 @testset "johnson distance subalgorithm" begin
@@ -29,6 +31,18 @@ end
     @test isapprox(result.signed_distance, norm([1.2, -0.9, 0]))
     @test isapprox(result.closest_point_in_body.a, [1.2, -0.9, 0.0])
     @test isapprox(result.closest_point_in_body.b, [0.0, 0.0, 0.0])
+end
+
+@testset "mesh to mesh" begin
+    mesh = load("meshes/r_foot_chull.obj")
+    dx = 1.0
+
+    cache = EnhancedGJK.CollisionCache(mesh, mesh)
+    result = EnhancedGJK.gjk!(cache, IdentityTransformation(), Translation(SVector(dx, 0, 0)))
+    @test isapprox(result.signed_distance, dx - (0.172786 + 0.090933), atol=1e-3)
+
+    result = EnhancedGJK.gjk!(cache, Translation(SVector(dx, 0, 0)), IdentityTransformation())
+    @test isapprox(result.signed_distance, dx - (0.172786 + 0.090933), atol=1e-3)
 end
 
 @testset "benchmarks" begin
