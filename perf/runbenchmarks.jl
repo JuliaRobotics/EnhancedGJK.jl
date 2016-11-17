@@ -31,6 +31,8 @@ let
 
         cache = CollisionCache(c1, c2)
         group["enhanced simplex"] = @benchmarkable gjk!($cache, IdentityTransformation(), IdentityTransformation())
+
+        group["enhanced simplex no cache"] = @benchmarkable gjk($c1, $c2)
     end
 
     tune!(suite)

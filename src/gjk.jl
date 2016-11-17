@@ -32,8 +32,8 @@ end
 
 dimension{G1, G2, M, D}(::Type{CollisionCache{G1, G2, M, D}}) = dimension(G1)
 
-function support_vector_max(geometry, direction, initial_guess::Tagged)
-    best_pt, score = gt.support_vector_max(geometry, direction)
+function support_vector_max(geometry::gt.GeometryPrimitive, direction, initial_guess::Tagged)
+    best_pt, score = gt.support_vector_max(geometry, gtvec(direction))
     Tagged(svector(best_pt))
 end
 
