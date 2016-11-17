@@ -39,7 +39,8 @@ end
 This is the function which actually computes the weight values.
 It returns an *expression* to compute that result, with all loops
 unrolled and all indices pre-computed based on the size and dimension
-of the simplex.
+of the simplex. For a more readable version of the same function, check
+out projection_weights_reference().
 """
 function projection_weights_impl{M, N, T}(::Type{SVector{M, SVector{N, T}}})
     num_subsets = num_johnson_subsets(M)

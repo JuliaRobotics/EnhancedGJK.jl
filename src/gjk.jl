@@ -41,6 +41,10 @@ function support_vector_max{N, T}(pt::gt.Vec{N, T}, direction, initial_guess::Ta
     Tagged(svector(pt))
 end
 
+function support_vector_max(simplex::Union{gt.AbstractSimplex, gt.AbstractFlexibleGeometry}, direction, initial_guess::Tagged)
+    best_pt, score = gt.support_vector_max(simplex, gtvec(direction))
+    Tagged(svector(best_pt))
+end
 
 function support_vector_max{N, T}(mesh::gt.HomogenousMesh{gt.Point{N, T}}, direction, initial_guess::Tagged)
     best_arg, best_value = gt.argmax(x-> dot(svector(x), direction), gt.vertices(mesh))

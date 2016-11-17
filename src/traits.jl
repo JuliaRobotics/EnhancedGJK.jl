@@ -6,6 +6,8 @@
 
 @pure dimension{N, T}(::Type{gt.Point{N, T}}) = Val{N}
 
-@pure dimension{M, N, T}(::Type{gt.Simplex{M, gt.Vec{N, T}}}) = Val{N}
+@pure dimension{M, T}(::Type{gt.Simplex{M, T}}) = dimension(T)
 
 @pure dimension{N, T}(::Type{SVector{N, T}}) = Val{N}
+
+@pure dimension{T}(::Type{gt.FlexibleConvexHull{T}}) = dimension(T)
