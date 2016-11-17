@@ -11,3 +11,5 @@
 @pure dimension{N, T}(::Type{SVector{N, T}}) = Val{N}
 
 @pure dimension{T}(::Type{gt.FlexibleConvexHull{T}}) = dimension(T)
+
+@pure dimension{N, T}(::Type{gt.HyperRectangle{N, T}}) = Val{N}

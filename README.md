@@ -11,6 +11,42 @@ GJK implementations are numerous and well-tested, but a pure-Julia implementatio
 
 # Usage
 
+The easiest way to use this package is the `gjk()` function. `gjk()` takes two geometries and, optionally, Transformation types specifying the pose of each geometry:
+
+```julia
+using EnhancedGJK
+import GeometryTypes: HyperRectangle, HyperSphere, Vec, Point
+
+c1 = HyperRectangle(Vec(0., 0, 0), Vec(1., 1, 1))
+c2 = HyperRectangle(Vec(3., 0, 0), Vec(1., 1, 1))
+result = gjk(c1, c2)
+```
+
+The return type of `gjk()` is a `GJKResult`, from which you can extract the signed distance between the two bodies:
+
+```julia
+julia> @show result.signed_distance
+result.signed_distance = 2.0
+```
+
+You can also access the closest point in each body to the other:
+
+```julia
+julia> result.closest_point_in_body.a
+3-element StaticArrays.SVector{3,Float64}:
+ 1.0
+ 0.0
+ 0.0
+
+julia> result.closest_point_in_body.b
+3-element StaticArrays.SVector{3,Float64}:
+ 3.0
+ 0.0
+ 0.0
+```
+
+When simulating physics, we often want to compute the distance between two bodies over and over while those bodies move slightly. In that case, we can cache some of the intermediate results to make each distance computation faster and free of memory allocations:
+
 ```julia
 using EnhancedGJK
 import StaticArrays: SVector
@@ -36,13 +72,12 @@ result = gjk!(cache, IdentityTransformation(), IdentityTransformation())
 @show result.signed_distance
 
 # We can perturb one of the geometries by changing its transformation.
-# Reusing the same cache will make this computation faster for complex
-# geometries if the change in transformation is small.
-result = gjk!(cache, Translation(SVector(0.1, 0, 0)), IdentityTransformation())
+# Reusing the same cache will make this computation faster, expecially
+# for complex geometries when the change in transformation is small.
+result = gjk!(cache, Translation(SVector(0.1, 0)), IdentityTransformation())
 
 @show result.signed_distance
 ```
-
 
 # References
 
