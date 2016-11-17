@@ -45,6 +45,8 @@ julia> result.closest_point_in_body.b
  0.0
 ```
 
+## Going Faster
+
 When simulating physics, we often want to compute the distance between two bodies over and over while those bodies move slightly. In that case, we can cache some of the intermediate results to make each distance computation faster and free of memory allocations:
 
 ```julia
@@ -78,6 +80,30 @@ result = gjk!(cache, Translation(SVector(0.1, 0)), IdentityTransformation())
 
 @show result.signed_distance
 ```
+
+## Meshes
+
+`gjk()` and `gjk!()` support meshes, represented as GeometryTypes.jl HomogenousMesh objects:
+
+```julia
+using MeshIO
+using FileIO
+mesh = load("test/meshes/r_foot_chull.obj")
+result = gjk(mesh, mesh, IdentityTransformation(), Translation(SVector(5., 0, 0)))
+@show result.signed_distance
+```
+
+Note that this package *does not* check if the mesh is convex. Non-convex meshes may produce incorrect distance measurements.
+
+GJK can be run even faster on complex meshes by pre-computing the neighbors of each vertex in the mesh. The `NeighborMesh` type handles this for you:
+
+```julia
+neighbormesh = NeighborMesh(mesh)
+result = gjk(neighbormesh, neighbormesh, IdentityTransformation(), Translation(SVector(5., 0, 0)))
+```
+
+This pre-computation of mesh vertex neighbors is the "enhanced" part of Enhanced GJK.
+
 
 # References
 
