@@ -1,3 +1,16 @@
+
+"""
+The enhanced GJK algorithm relies on a pre-computed set of neighbors for each
+vertex in the mesh. In order to use those neighbors, we have to know from which
+vertex to start. Specifically, we need to know the index of the vertex
+corresponding to the point in the GJK simplex which we are trying to improve.
+To do that, we introduce the notion of a `Tagged` point. A tagged point is
+just a point and some arbitrary additional data field. All of the
+`any_inside` and `support_vector_max` functions in this package return tagged
+points. For most geometries, that tag is empty (`nothing`). But for our
+NeighborMesh type, the tag is the linear index into the vertices of the mesh,
+which lets us look up that mesh's neighbors faster later on. 
+"""
 immutable Tagged{P, T}
     point::P
     tag::T
@@ -17,9 +30,3 @@ end
 function any_inside{N, T}(mesh::gt.AbstractMesh{gt.Point{N, T}})
     Tagged(svector(first(gt.vertices(mesh))))
 end
-
-# function any_inside(m::gt.MinkowskiDifference)
-#     t1 = any_inside(m.c1)
-#     t2 = any_inside(m.c2)
-#     Difference(t1, t2)
-# end

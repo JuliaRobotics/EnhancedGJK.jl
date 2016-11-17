@@ -1,14 +1,21 @@
 module EnhancedGJK
 
 using StaticArrays
-import StaticArrays: insert
 import GeometryTypes
 const gt = GeometryTypes
-import CoordinateTransformations: Transformation, transform_deriv
-import Base: dot, zero, +, *, @pure, convert
+import CoordinateTransformations: Transformation,
+                                  transform_deriv,
+                                  IdentityTransformation
+import Base: dot,
+             zero,
+             +,
+             *,
+             @pure,
+             convert
 
 export CollisionCache,
        gjk!,
+       gjk,
        GJKResult,
        NeighborMesh
 

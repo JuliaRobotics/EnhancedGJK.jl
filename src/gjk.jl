@@ -75,15 +75,15 @@ immutable GJKResult{M, N, T}
     signed_distance::T
 end
 
-function gjk!(cache::CollisionCache, poseA::Transformation, poseB::Transformation)
-    const max_iter = 100
-    const atol = 1e-6
-    const rotAinv = transform_deriv(inv(poseA), 0)
-    const rotBinv = transform_deriv(inv(poseB), 0)
+function gjk!(cache::CollisionCache,
+              poseA::Transformation,
+              poseB::Transformation,
+              max_iter=100,
+              atol=1e-6)
+    rotAinv = transform_deriv(inv(poseA), 0)
+    rotBinv = transform_deriv(inv(poseB), 0)
     simplex = transform_simplex(cache, poseA, poseB)
     iter = 1
-    # in_interior = false
-    # best_point = simplex[1]
 
     while true
         weights = projection_weights(simplex)
@@ -147,4 +147,11 @@ function penetration_distance(simplex)
         -distance_to_face
     end
     return penetration_distance
+end
+
+function gjk(geomA, geomB,
+             poseA::Transformation=IdentityTransformation(),
+             poseB::Transformation=IdentityTransformation())
+    cache = CollisionCache(geomA, geomB)
+    gjk!(cache, poseA, poseB)
 end
