@@ -34,6 +34,6 @@ let
     end
 
     tune!(suite)
-    results = run(suite, verbose=true)
+    results = run(suite)
     showall(results)
 end

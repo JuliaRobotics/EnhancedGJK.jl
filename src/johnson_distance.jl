@@ -1,9 +1,31 @@
+"""
+    weights = projection_weights(simplex)
+
+This function implements Johnson's distance subalgorithm, as described in
+E. G. Gilbert, D. W. Johnson, and S. S. Keerthi, “A fast procedure for
+computing the distance between complex objects in three-dimensional space,”
+1988. Given a simplex (a length N+1 vector of points of dimension N), it
+returns weights such that dot(weights, simplex) yields the point in the convex
+hull of the simplex which is closest to the origin.
+
+This is the critical loop of the GJK algorithm, so it has been heavily optimized
+to precompute, inline, and unroll as much of the algorithm as possible. For a
+more readable (and much slower) implementation, see
+projection_weights_reference()
+"""
 @generated function projection_weights{M, N, T}(simplex::SVector{M, SVector{N, T}})
     projection_weights_impl(simplex)
 end
 
 num_johnson_subsets(simplex_length::Integer) = 2^simplex_length - 1
 
+"""
+Compute all subsets of the points in the simplex in a reliable order. The
+order is arbitrary, but was chosen to match the implemenation in
+S. Cameron, “Enhancing GJK: computing minimum and penetration distances between
+convex polyhedra,”. Specifically, subset i contains point j iff the binary
+representation of i has a one at the jth bit.
+"""
 function johnson_subsets(simplex_length::Integer)
     num_subsets = num_johnson_subsets(simplex_length)
     subsets = falses(simplex_length, num_subsets)
