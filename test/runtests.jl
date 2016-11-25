@@ -8,6 +8,46 @@ using MeshIO
 using Base.Test
 import StaticArrays: SVector
 
+@testset "table" begin
+    width = 0.5
+    thickness = 0.05
+    surface_points = Vector{SVector{3, Float64}}()
+    for z in [-thickness, thickness]
+    for x in [-width, width]
+        for y in [-width, width]
+            push!(surface_points, SVector(x, y, z))
+        end
+    end
+    end
+    geometry = SVector{length(surface_points)}(surface_points)
+    point = zeros(SVector{3, Float64})
+    for x in linspace(-width, width, 21)
+        for y in linspace(-width, width, 21)
+            z = 0.1
+            @test isapprox(gjk(geometry,
+                point,
+                IdentityTransformation(),
+                Translation(SVector(x, y, z))).signed_distance, 0.05)
+            z = 0.06
+            @test isapprox(gjk(geometry,
+                    point,
+                    IdentityTransformation(),
+                    Translation(SVector(x, y, z))).signed_distance,
+                0.01,
+                atol=1e-12)
+            z = 0.05
+            @test isapprox(gjk(geometry,
+                    point,
+                    IdentityTransformation(),
+                    Translation(SVector(x, y, z))).signed_distance,
+                0.0,
+                atol=1e-12)
+        end
+    end
+end
+
+
+
 @testset "johnson distance subalgorithm" begin
     include("johnson_distance.jl")
 end
@@ -99,7 +139,6 @@ end
         @test gjk(c1, c2).signed_distance == 0.
     end
 end
-
 
 @testset "benchmarks" begin
     include("../perf/runbenchmarks.jl")
