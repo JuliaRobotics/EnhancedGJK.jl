@@ -19,7 +19,8 @@ export CollisionCache,
        gjk!,
        gjk,
        GJKResult,
-       NeighborMesh
+       NeighborMesh,
+       ReferenceDistance
 
 
 include("geometry_type_conversions.jl")
@@ -29,5 +30,6 @@ include("johnson_distance.jl")
 include("neighbor_mesh.jl")
 include("traits.jl")
 include("gjk.jl")
+include("reference_distance.jl")
 
 end # module
