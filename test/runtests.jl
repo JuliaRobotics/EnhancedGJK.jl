@@ -156,6 +156,6 @@ end
     end
 end
 
-# @testset "benchmarks" begin
-#     include("../perf/runbenchmarks.jl")
-# end
+@testset "benchmarks" begin
+    include("../perf/runbenchmarks.jl")
+end
