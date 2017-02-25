@@ -12,7 +12,7 @@ const mesh_dir = joinpath(dirname(@__FILE__), "meshes")
 
 @testset "mesh distance" begin
     mesh = load(joinpath(mesh_dir, "base_link.obj"))
-    for x in linspace(0.1, 1, 10)
+    for x in linspace(0.05, 1, 10)
         for y in linspace(-1, 1, 10)
             for z in linspace(-1, 1, 10)
                 point = SVector(x, y, z)
