@@ -28,26 +28,26 @@ end
     verts = [gt.Point(1., -1, 1), gt.Point(1., 1, 1), gt.Point(-1., 1, 1), gt.Point(-1., -1, 1),
              gt.Point(1., -1, -1), gt.Point(1., 1, -1), gt.Point(-1., 1, -1), gt.Point(-1., -1, -1)]
     typealias ft gt.Face{3, Int, 0}
-    faces = [ft(1, 2, 5), ft(5, 6, 2),
-             ft(2, 3, 6), ft(6, 7, 3),
-             ft(3, 4, 7), ft(7, 8, 4),
-             ft(4, 1, 8), ft(8, 5, 1),
-             ft(1, 2, 3), ft(3, 4, 1),
+    faces = [ft(1, 2, 5), ft(6, 5, 2),
+             ft(2, 3, 6), ft(7, 6, 3),
+             ft(3, 4, 7), ft(8, 7, 4),
+             ft(4, 1, 8), ft(5, 8, 1),
+             ft(2, 1, 3), ft(4, 3, 1),
              ft(5, 6, 7), ft(7, 8, 5)]
     mesh = gt.HomogenousMesh(verts, faces)
+    ReferenceDistance.signed_distance(mesh, SVector(0, 0, 0))
 
     for x in linspace(-1, 1, 10)
         for y in linspace(-1, 1, 10)
             for z in linspace(-1, 1, 10)
                 point = SVector(x, y, z)
-                expected = min(1 - abs(x), 1 - abs(y), 1 - abs(z))
+                expected = -min(1 - abs(x), 1 - abs(y), 1 - abs(z))
                 actual = ReferenceDistance.signed_distance(mesh, point)
                 @test isapprox(expected, actual, atol=1e-15)
             end
         end
     end
 end
-
 
 @testset "table" begin
     width = 0.5
