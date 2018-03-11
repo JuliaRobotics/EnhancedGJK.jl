@@ -13,7 +13,7 @@ to precompute, inline, and unroll as much of the algorithm as possible. For a
 more readable (and much slower) implementation, see
 projection_weights_reference()
 """
-@generated function projection_weights{M, N, T}(simplex::SVector{M, SVector{N, T}})
+@generated function projection_weights(simplex::SVector{M, SVector{N, T}}) where {M,N,T}
     projection_weights_impl(simplex)
 end
 
@@ -64,10 +64,10 @@ unrolled and all indices pre-computed based on the size and dimension
 of the simplex. For a more readable version of the same function, check
 out projection_weights_reference().
 """
-function projection_weights_impl{M, N, T}(::Type{SVector{M, SVector{N, T}}})
+function projection_weights_impl(::Type{SVector{M, SVector{N, T}}}) where {M,N,T}
     num_subsets = num_johnson_subsets(M)
     subsets = johnson_subsets(M)
-    complements = !subsets
+    complements = .!subsets
 
     expr = quote
         deltas = $(initial_deltas_impl(M, T))
@@ -112,7 +112,7 @@ function projection_weights_impl{M, N, T}(::Type{SVector{M, SVector{N, T}}})
     return expr
 end
 
-function projection_weights_reference{M, N, T}(simplex::SVector{M, SVector{N, T}})
+function projection_weights_reference(simplex::SVector{M, SVector{N, T}}) where {M,N,T}
     num_subsets = 2^M - 1
     complements = falses(M, num_subsets)
     subsets = falses(M, num_subsets)

@@ -1,28 +1,28 @@
 module ReferenceDistance
 
 using GeometryTypes
-import EnhancedGJK: svector, projection_weights
+import EnhancedGJK: projection_weights
 import Base: convert
 import StaticArrays: SVector
 
-immutable Plane{N, T}
+struct Plane{N, T}
     a::SVector{N, T}
     b::T
 end
 
 function normal(points)
     span = GeometryTypes.edgespan(Simplex(points))
-    normalize(cross(Point(column(span, 1)), Point(column(span, 2))))
+    normalize(cross(Point(span[:, 1]), Point(span[:, 2])))
 end
 
-function planefit{N, T}(points::NTuple{3, Point{N, T}})
+function planefit(points::NTuple{3, Point{N, T}}) where {N,T}
     a = normal(points)
     b = -dot(a, points[1])
-    Plane(svector(a), b)
+    Plane(SVector(a), b)
 end
 
-@generated function convert{S <: SVector, N}(::Type{S}, simplex::Simplex{N})
-    Expr(:call, :SVector, Expr(:tuple, [:(svector(simplex[$i])) for i in 1:N]...))
+@generated function convert(::Type{S}, simplex::Simplex{N}) where {S <: SVector,N}
+    Expr(:call, :SVector, Expr(:tuple, [:(SVector(simplex[$i])) for i in 1:N]...))
 end
 
 function interior_distance(face_points, target)

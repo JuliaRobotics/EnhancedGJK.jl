@@ -12,7 +12,6 @@ import Base: dot,
              zero,
              +,
              *,
-             @pure,
              convert
 
 export CollisionCache,
@@ -23,7 +22,6 @@ export CollisionCache,
        ReferenceDistance
 
 
-include("geometry_type_conversions.jl")
 include("tagged_points.jl")
 include("simplices.jl")
 include("johnson_distance.jl")

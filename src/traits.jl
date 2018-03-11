@@ -1,15 +1,15 @@
-@pure dimension{N, T, S}(::Type{gt.AbstractSimplex{S, gt.Vec{N, T}}}) = Val{N}
+dimension(::Type{gt.AbstractSimplex{S, gt.Vec{N, T}}}) where {N,T,S} = Val{N}
 
-@pure dimension{M <: gt.AbstractMesh}(::Type{M}) = dimension(gt.vertextype(M))
+dimension(::Type{M}) where {M <: gt.AbstractMesh} = dimension(gt.vertextype(M))
 
-@pure dimension{N, T}(::Type{gt.Vec{N, T}}) = Val{N}
+dimension(::Type{gt.Vec{N, T}}) where {N,T} = Val{N}
 
-@pure dimension{N, T}(::Type{gt.Point{N, T}}) = Val{N}
+dimension(::Type{gt.Point{N, T}}) where {N,T} = Val{N}
 
-@pure dimension{M, T}(::Type{gt.Simplex{M, T}}) = dimension(T)
+dimension(::Type{gt.Simplex{M, T}}) where {M,T} = dimension(T)
 
-@pure dimension{N, T}(::Type{SVector{N, T}}) = Val{N}
+dimension(::Type{SVector{N, T}}) where {N,T} = Val{N}
 
-@pure dimension{T}(::Type{gt.FlexibleConvexHull{T}}) = dimension(T)
+dimension(::Type{gt.FlexibleConvexHull{T}}) where {T} = dimension(T)
 
-@pure dimension{N, T}(::Type{gt.HyperRectangle{N, T}}) = Val{N}
+dimension(::Type{gt.HyperRectangle{N, T}}) where {N,T} = Val{N}

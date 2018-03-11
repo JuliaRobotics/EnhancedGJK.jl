@@ -1,4 +1,4 @@
-immutable Difference{PA, PB}
+struct Difference{PA, PB}
     a::PA
     b::PB
 end
@@ -6,7 +6,7 @@ end
 *(n::Number, d::Difference) = Difference(*(n, d.a), *(n, d.b))
 +(d1::Difference, d2::Difference) = Difference(d1.a + d2.a, d1.b + d2.b)
 
-immutable CollisionCache{GeomA, GeomB, M, D <: Difference}
+struct CollisionCache{GeomA, GeomB, M, D <: Difference}
     bodyA::GeomA
     bodyB::GeomB
     simplex_points::MVector{M, D}
@@ -18,7 +18,7 @@ function CollisionCache(geomA, geomB)
     CollisionCache(N, geomA, geomB)
 end
 
-@generated function initial_simplex{N}(dim::Type{Val{N}}, geomA, geomB)
+@generated function initial_simplex(dim::Type{Val{N}}, geomA, geomB) where {N}
     return quote
         interior_point = Difference(any_inside(geomA), any_inside(geomB))
         simplex = $(Expr(:call, :(MVector), [:(interior_point) for i in 1:(N + 1)]...))
@@ -30,25 +30,25 @@ function CollisionCache{N}(::Type{Val{N}}, geomA, geomB)
     CollisionCache(geomA, geomB, simplex)
 end
 
-dimension{G1, G2, M, D}(::Type{CollisionCache{G1, G2, M, D}}) = dimension(G1)
+dimension(::Type{CollisionCache{G1, G2, M, D}}) where {G1,G2,M,D} = dimension(G1)
 
 function support_vector_max(geometry::gt.GeometryPrimitive, direction, initial_guess::Tagged)
-    best_pt, score = gt.support_vector_max(geometry, gtvec(direction))
-    Tagged(svector(best_pt))
+    best_pt, score = gt.support_vector_max(geometry, gt.Vec(direction))
+    Tagged(SVector(best_pt))
 end
 
-function support_vector_max{N, T}(pt::gt.Vec{N, T}, direction, initial_guess::Tagged)
-    Tagged(svector(pt))
+function support_vector_max(pt::gt.Vec{N, T}, direction, initial_guess::Tagged) where {N,T}
+    Tagged(SVector(pt))
 end
 
 function support_vector_max(simplex::Union{gt.AbstractSimplex, gt.AbstractFlexibleGeometry}, direction, initial_guess::Tagged)
-    best_pt, score = gt.support_vector_max(simplex, gtvec(direction))
-    Tagged(svector(best_pt))
+    best_pt, score = gt.support_vector_max(simplex, gt.Vec(direction))
+    Tagged(SVector(best_pt))
 end
 
-function support_vector_max{N, T}(mesh::gt.HomogenousMesh{gt.Point{N, T}}, direction, initial_guess::Tagged)
-    best_arg, best_value = gt.argmax(x-> dot(svector(x), direction), gt.vertices(mesh))
-    best_vec = svector(best_arg)
+function support_vector_max(mesh::gt.HomogenousMesh{gt.Point{N, T}}, direction, initial_guess::Tagged) where {N,T}
+    best_arg, best_value = gt.argmax(x-> dot(SVector(x), direction), gt.vertices(mesh))
+    best_vec = SVector(best_arg)
     Tagged(best_vec)
 end
 
@@ -59,7 +59,7 @@ function transform_simplex(cache::CollisionCache, poseA, poseB)
     transform_simplex(dimension(typeof(cache)), cache, poseA, poseB)
 end
 
-@generated function transform_simplex{N}(::Type{Val{N}}, cache::CollisionCache, poseA, poseB)
+@generated function transform_simplex(::Type{Val{N}}, cache::CollisionCache, poseA, poseB) where {N}
     transform_simplex_impl(N, cache, poseA, poseB)
 end
 
@@ -69,7 +69,7 @@ function transform_simplex_impl(N, cache, poseA, poseB)
             poseB(value(cache.simplex_points[$i].b)))) for i in 1:(N + 1)]...)
 end
 
-immutable GJKResult{M, N, T}
+struct GJKResult{M, N, T}
     simplex::SVector{M, SVector{N, T}}
     closest_point_in_body::Difference{SVector{N, T}, SVector{N, T}}
     signed_distance::T

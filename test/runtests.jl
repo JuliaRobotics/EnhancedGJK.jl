@@ -27,7 +27,7 @@ end
 @testset "reference interior distance" begin
     verts = [gt.Point(1., -1, 1), gt.Point(1., 1, 1), gt.Point(-1., 1, 1), gt.Point(-1., -1, 1),
              gt.Point(1., -1, -1), gt.Point(1., 1, -1), gt.Point(-1., 1, -1), gt.Point(-1., -1, -1)]
-    typealias ft gt.Face{3, Int, 0}
+    ft = gt.Face{3, Int}
     faces = [ft(1, 2, 5), ft(6, 5, 2),
              ft(2, 3, 6), ft(7, 6, 3),
              ft(3, 4, 7), ft(8, 7, 4),
