@@ -1,7 +1,7 @@
 # EnhancedGJK
 
-[![Build Status](https://travis-ci.org/rdeits/EnhancedGJK.jl.svg?branch=master)](https://travis-ci.org/rdeits/EnhancedGJK.jl)
-[![codecov.io](http://codecov.io/github/rdeits/EnhancedGJK.jl/coverage.svg?branch=master)](http://codecov.io/github/rdeits/EnhancedGJK.jl?branch=master)
+[![Build Status](https://travis-ci.org/JuliaRobotics/EnhancedGJK.jl.svg?branch=master)](https://travis-ci.org/JuliaRobotics/EnhancedGJK.jl)
+[![codecov.io](http://codecov.io/github/JuliaRobotics/EnhancedGJK.jl/coverage.svg?branch=master)](http://codecov.io/github/JuliaRobotics/EnhancedGJK.jl?branch=master)
 
 This package contains a pure-Julia implementation of the enhanced version of the Gilbert, Johnson, and Keerthi algorithm for computing distance between convex bodies. The algorithm is described in detail by Stephen Cameron in [1].
 
