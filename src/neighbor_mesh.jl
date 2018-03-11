@@ -54,18 +54,18 @@ function NeighborMesh(mesh::gt.AbstractMesh{gt.Point{N, T}}) where {N,T}
     NeighborMesh{typeof(mesh)}(mesh, neighbors)
 end
 
-any_inside(mesh::NeighborMesh) = Tagged(svector( first(gt.vertices(mesh.mesh))), 1)
+any_inside(mesh::NeighborMesh) = Tagged(SVector( first(gt.vertices(mesh.mesh))), 1)
 
 function support_vector_max(mesh::NeighborMesh, direction,
                                   initial_guess::Tagged{P, Tag}) where {P,Tag}
     verts = gt.vertices(mesh.mesh)
-    best = Tagged{P, Tag}(svector(verts[initial_guess.tag]), initial_guess.tag)
+    best = Tagged{P, Tag}(SVector(verts[initial_guess.tag]), initial_guess.tag)
     score = dot(direction, best.point)
     while true
         candidates = mesh.neighbors[best.tag]
         improved = false
         for index in candidates
-            candidate_point = svector(verts[index])
+            candidate_point = SVector(verts[index])
             candidate_score = dot(direction, candidate_point)
             if candidate_score > score || (candidate_score == score && index > best.tag)
                 score = candidate_score

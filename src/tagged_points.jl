@@ -24,9 +24,9 @@ value(t::Tagged) = t.point
 
 function any_inside(geometry)
     point = gt.any_inside(geometry)
-    Tagged(svector(point))
+    Tagged(SVector(point))
 end
 
 function any_inside(mesh::gt.AbstractMesh{gt.Point{N, T}}) where {N,T}
-    Tagged(svector(first(gt.vertices(mesh))))
+    Tagged(SVector(first(gt.vertices(mesh))))
 end

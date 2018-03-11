@@ -1,7 +1,7 @@
 module ReferenceDistance
 
 using GeometryTypes
-import EnhancedGJK: svector, projection_weights
+import EnhancedGJK: SVector, projection_weights
 import Base: convert
 import StaticArrays: SVector
 
@@ -18,11 +18,11 @@ end
 function planefit(points::NTuple{3, Point{N, T}}) where {N,T}
     a = normal(points)
     b = -dot(a, points[1])
-    Plane(svector(a), b)
+    Plane(SVector(a), b)
 end
 
 @generated function convert(::Type{S}, simplex::Simplex{N}) where {S <: SVector,N}
-    Expr(:call, :SVector, Expr(:tuple, [:(svector(simplex[$i])) for i in 1:N]...))
+    Expr(:call, :SVector, Expr(:tuple, [:(SVector(simplex[$i])) for i in 1:N]...))
 end
 
 function interior_distance(face_points, target)

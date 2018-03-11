@@ -33,22 +33,22 @@ end
 dimension(::Type{CollisionCache{G1, G2, M, D}}) where {G1,G2,M,D} = dimension(G1)
 
 function support_vector_max(geometry::gt.GeometryPrimitive, direction, initial_guess::Tagged)
-    best_pt, score = gt.support_vector_max(geometry, gtvec(direction))
-    Tagged(svector(best_pt))
+    best_pt, score = gt.support_vector_max(geometry, gt.Vec(direction))
+    Tagged(SVector(best_pt))
 end
 
 function support_vector_max(pt::gt.Vec{N, T}, direction, initial_guess::Tagged) where {N,T}
-    Tagged(svector(pt))
+    Tagged(SVector(pt))
 end
 
 function support_vector_max(simplex::Union{gt.AbstractSimplex, gt.AbstractFlexibleGeometry}, direction, initial_guess::Tagged)
-    best_pt, score = gt.support_vector_max(simplex, gtvec(direction))
-    Tagged(svector(best_pt))
+    best_pt, score = gt.support_vector_max(simplex, gt.Vec(direction))
+    Tagged(SVector(best_pt))
 end
 
 function support_vector_max(mesh::gt.HomogenousMesh{gt.Point{N, T}}, direction, initial_guess::Tagged) where {N,T}
-    best_arg, best_value = gt.argmax(x-> dot(svector(x), direction), gt.vertices(mesh))
-    best_vec = svector(best_arg)
+    best_arg, best_value = gt.argmax(x-> dot(SVector(x), direction), gt.vertices(mesh))
+    best_vec = SVector(best_arg)
     Tagged(best_vec)
 end
 
