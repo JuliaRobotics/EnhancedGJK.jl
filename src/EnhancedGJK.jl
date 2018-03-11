@@ -12,7 +12,6 @@ import Base: dot,
              zero,
              +,
              *,
-             @pure,
              convert
 
 export CollisionCache,

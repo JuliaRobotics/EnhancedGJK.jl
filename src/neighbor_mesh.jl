@@ -81,4 +81,4 @@ function support_vector_max(mesh::NeighborMesh, direction,
     best
 end
 
-@pure dimension(::Type{NeighborMesh{M}}) where {M} = dimension(M)
+dimension(::Type{NeighborMesh{M}}) where {M} = dimension(M)
