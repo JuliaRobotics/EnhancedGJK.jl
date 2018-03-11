@@ -9,9 +9,9 @@ just a point and some arbitrary additional data field. All of the
 `any_inside` and `support_vector_max` functions in this package return tagged
 points. For most geometries, that tag is empty (`nothing`). But for our
 NeighborMesh type, the tag is the linear index into the vertices of the mesh,
-which lets us look up that mesh's neighbors faster later on. 
+which lets us look up that mesh's neighbors faster later on.
 """
-immutable Tagged{P, T}
+struct Tagged{P, T}
     point::P
     tag::T
 end
@@ -27,6 +27,6 @@ function any_inside(geometry)
     Tagged(svector(point))
 end
 
-function any_inside{N, T}(mesh::gt.AbstractMesh{gt.Point{N, T}})
+function any_inside(mesh::gt.AbstractMesh{gt.Point{N, T}}) where {N,T}
     Tagged(svector(first(gt.vertices(mesh))))
 end

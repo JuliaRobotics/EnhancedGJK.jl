@@ -8,7 +8,7 @@ every vertex in the mesh.
 Note that constructing a new NeighborMesh is expensive (and unoptimized). We
 recommend constructing the NeighborMesh for each of your meshes ahead of time.
 """
-type NeighborMesh{MeshType <: gt.AbstractMesh}
+mutable struct NeighborMesh{MeshType <: gt.AbstractMesh}
     mesh::MeshType
     neighbors::Vector{Set{Int}}
 end
@@ -22,14 +22,15 @@ function plane_fit(data)
     normal, offset
 end
 
-function NeighborMesh{N, T}(mesh::gt.AbstractMesh{gt.Point{N, T}})
+
+function NeighborMesh(mesh::gt.AbstractMesh{gt.Point{N, T}}) where {N,T}
     neighbors = Set{Int}[Set{Int}() for vertex in gt.vertices(mesh)]
     for face in gt.faces(mesh)
         for i in 1:length(face)
             for j in i+1:length(face)
                 if face[i] != face[j]
-                    push!(neighbors[gt.onebased(face, i)], gt.onebased(face, j))
-                    push!(neighbors[gt.onebased(face, j)], gt.onebased(face, i))
+                    push!(neighbors[face[i]], face[j])
+                    push!(neighbors[face[j]], face[i])
                 end
             end
         end
@@ -55,8 +56,8 @@ end
 
 any_inside(mesh::NeighborMesh) = Tagged(svector( first(gt.vertices(mesh.mesh))), 1)
 
-function support_vector_max{P, Tag}(mesh::NeighborMesh, direction,
-                                  initial_guess::Tagged{P, Tag})
+function support_vector_max(mesh::NeighborMesh, direction,
+                                  initial_guess::Tagged{P, Tag}) where {P,Tag}
     verts = gt.vertices(mesh.mesh)
     best = Tagged{P, Tag}(svector(verts[initial_guess.tag]), initial_guess.tag)
     score = dot(direction, best.point)
@@ -80,4 +81,4 @@ function support_vector_max{P, Tag}(mesh::NeighborMesh, direction,
     best
 end
 
-@pure dimension{M}(::Type{NeighborMesh{M}}) = dimension(M)
+@pure dimension(::Type{NeighborMesh{M}}) where {M} = dimension(M)
