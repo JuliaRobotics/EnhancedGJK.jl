@@ -1,7 +1,7 @@
 module ReferenceDistance
 
 using GeometryTypes
-import EnhancedGJK: SVector, projection_weights
+import EnhancedGJK: projection_weights
 import Base: convert
 import StaticArrays: SVector
 
