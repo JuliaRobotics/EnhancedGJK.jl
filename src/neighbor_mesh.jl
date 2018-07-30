@@ -14,9 +14,9 @@ mutable struct NeighborMesh{MeshType <: gt.AbstractMesh}
 end
 
 function plane_fit(data)
-    centroid = mean(data, 2)
+    centroid = mean(data, dims=2)
     U, s, V = svd(data .- centroid)
-    i = indmin(s)
+    i = argmin(s)
     normal = U[:,i]
     offset = dot(normal, centroid)
     normal, offset
@@ -46,10 +46,10 @@ function NeighborMesh(mesh::gt.AbstractMesh{gt.Point{N, T}}) where {N,T}
     verts = gt.vertices(mesh)
     for i in eachindex(neighbors)
         @assert length(neighbors[i]) >= 2
-        normal, offset = plane_fit(reinterpret(T,
-            [verts[n] for n in neighbors[i]], (N, length(neighbors[i]))))
-        push!(neighbors[i], indmin(map(v -> dot(convert(gt.Point{N, T}, normal), v), verts)))
-        push!(neighbors[i], indmax(map(v -> dot(convert(gt.Point{N, T}, normal), v), verts)))
+        normal, offset = plane_fit(reshape(reinterpret(T,
+            [verts[n] for n in neighbors[i]]), (N, length(neighbors[i]))))
+        push!(neighbors[i], argmin(map(v -> dot(convert(gt.Point{N, T}, normal), v), verts)))
+        push!(neighbors[i], argmax(map(v -> dot(convert(gt.Point{N, T}, normal), v), verts)))
     end
     NeighborMesh{typeof(mesh)}(mesh, neighbors)
 end

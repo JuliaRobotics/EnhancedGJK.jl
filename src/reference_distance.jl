@@ -2,8 +2,8 @@ module ReferenceDistance
 
 using GeometryTypes
 import EnhancedGJK: projection_weights
-import Base: convert
 import StaticArrays: SVector
+using LinearAlgebra
 
 struct Plane{N, T}
     a::SVector{N, T}
@@ -21,7 +21,7 @@ function planefit(points::NTuple{3, Point{N, T}}) where {N,T}
     Plane(SVector(a), b)
 end
 
-@generated function convert(::Type{S}, simplex::Simplex{N}) where {S <: SVector,N}
+@generated function Base.convert(::Type{S}, simplex::Simplex{N}) where {S <: SVector,N}
     Expr(:call, :SVector, Expr(:tuple, [:(SVector(simplex[$i])) for i in 1:N]...))
 end
 

@@ -37,5 +37,5 @@ let
 
     tune!(suite)
     results = run(suite)
-    showall(results)
+    display(results)
 end

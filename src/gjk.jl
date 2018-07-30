@@ -3,8 +3,8 @@ struct Difference{PA, PB}
     b::PB
 end
 
-*(n::Number, d::Difference) = Difference(*(n, d.a), *(n, d.b))
-+(d1::Difference, d2::Difference) = Difference(d1.a + d2.a, d1.b + d2.b)
+Base.:*(n::Number, d::Difference) = Difference(*(n, d.a), *(n, d.b))
+Base.:+(d1::Difference, d2::Difference) = Difference(d1.a + d2.a, d1.b + d2.b)
 
 struct CollisionCache{GeomA, GeomB, M, D <: Difference}
     bodyA::GeomA
@@ -18,15 +18,15 @@ function CollisionCache(geomA, geomB)
     CollisionCache(N, geomA, geomB)
 end
 
-@generated function initial_simplex(dim::Type{Val{N}}, geomA, geomB) where {N}
+@generated function initial_simplex(dim::Val{N}, geomA, geomB) where {N}
     return quote
         interior_point = Difference(any_inside(geomA), any_inside(geomB))
         simplex = $(Expr(:call, :(MVector), [:(interior_point) for i in 1:(N + 1)]...))
     end
 end
 
-function CollisionCache{N}(::Type{Val{N}}, geomA, geomB)
-    simplex = initial_simplex(Val{N}, geomA, geomB)
+function CollisionCache(::Val{N}, geomA, geomB) where N
+    simplex = initial_simplex(Val(N), geomA, geomB)
     CollisionCache(geomA, geomB, simplex)
 end
 
@@ -59,7 +59,7 @@ function transform_simplex(cache::CollisionCache, poseA, poseB)
     transform_simplex(dimension(typeof(cache)), cache, poseA, poseB)
 end
 
-@generated function transform_simplex(::Type{Val{N}}, cache::CollisionCache, poseA, poseB) where {N}
+@generated function transform_simplex(::Val{N}, cache::CollisionCache, poseA, poseB) where {N}
     transform_simplex_impl(N, cache, poseA, poseB)
 end
 

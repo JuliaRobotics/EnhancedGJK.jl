@@ -16,9 +16,9 @@ struct Tagged{P, T}
     tag::T
 end
 
-Tagged{P}(point::P) = Tagged(point, nothing)
+Tagged(point::P) where {P} = Tagged(point, nothing)
 
-*(n::Number, t::Tagged) = n * value(t)
+Base.:*(n::Number, t::Tagged) = n * value(t)
 
 value(t::Tagged) = t.point
 

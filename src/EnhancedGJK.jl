@@ -5,14 +5,11 @@ module EnhancedGJK
 using StaticArrays
 import GeometryTypes
 const gt = GeometryTypes
-import CoordinateTransformations: Transformation,
-                                  transform_deriv,
-                                  IdentityTransformation
-import Base: dot,
-             zero,
-             +,
-             *,
-             convert
+using CoordinateTransformations: Transformation,
+                                 transform_deriv,
+                                 IdentityTransformation
+using LinearAlgebra
+using Statistics: mean
 
 export CollisionCache,
        gjk!,
