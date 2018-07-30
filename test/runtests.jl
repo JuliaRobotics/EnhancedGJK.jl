@@ -1,20 +1,23 @@
+using Test
+using Statistics
+using LinearAlgebra
+using Random
+
 using EnhancedGJK
-import EnhancedGJK: projection_weights, projection_weights_reference
-import CoordinateTransformations: IdentityTransformation, Translation
+using EnhancedGJK: projection_weights, projection_weights_reference
+using CoordinateTransformations: IdentityTransformation, Translation
+using StaticArrays: SVector
 import GeometryTypes
 const gt = GeometryTypes
 using FileIO
-using MeshIO
-using Base.Test
-import StaticArrays: SVector
 
 const mesh_dir = joinpath(dirname(@__FILE__), "meshes")
 
 @testset "reference distance" begin
     mesh = load(joinpath(mesh_dir, "base_link.obj"))
-    for x in linspace(0.05, 1, 10)
-        for y in linspace(-1, 1, 10)
-            for z in linspace(-1, 1, 10)
+    for x in range(0.05, stop=1, length=10)
+        for y in range(-1, stop=1, length=10)
+            for z in range(-1, stop=1, length=10)
                 point = SVector(x, y, z)
                 gjk_dist = gjk(mesh, point)
                 simple_dist = ReferenceDistance.signed_distance(mesh, point)
@@ -37,9 +40,9 @@ end
     mesh = gt.HomogenousMesh(verts, faces)
     ReferenceDistance.signed_distance(mesh, SVector(0, 0, 0))
 
-    for x in linspace(-1, 1, 10)
-        for y in linspace(-1, 1, 10)
-            for z in linspace(-1, 1, 10)
+    for x in range(-1, stop=1, length=10)
+        for y in range(-1, stop=1, length=10)
+            for z in range(-1, stop=1, length=10)
                 point = SVector(x, y, z)
                 expected = -min(1 - abs(x), 1 - abs(y), 1 - abs(z))
                 actual = ReferenceDistance.signed_distance(mesh, point)
@@ -62,8 +65,8 @@ end
     end
     geometry = SVector{length(surface_points)}(surface_points)
     point = zeros(SVector{3, Float64})
-    for x in linspace(-width, width, 21)
-        for y in linspace(-width, width, 21)
+    for x in range(-width, stop=width, length=21)
+        for y in range(-width, stop=width, length=21)
             z = 0.1
             @test isapprox(gjk(geometry,
                 point,

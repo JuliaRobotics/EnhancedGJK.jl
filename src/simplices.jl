@@ -1,7 +1,7 @@
 const Simplex{M, N, T} = Union{MVector{M, SVector{N, T}}, SVector{M, SVector{N, T}}}
 const SimplexType{M, N, T} = Union{Type{MVector{M, SVector{N, T}}}, Type{SVector{M, SVector{N, T}}}}
 
-dimension(::SimplexType{M, N, T}) where {M,N,T} = Val{N}
+dimension(::SimplexType{M, N, T}) where {M,N,T} = Val(N)
 
 any_inside(simplex::Simplex{M, N, T}) where {M,N,T} = Tagged(simplex[1])
 

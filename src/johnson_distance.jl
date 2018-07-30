@@ -41,7 +41,7 @@ function initial_deltas_impl(simplex_length, T)
     num_subsets = num_johnson_subsets(simplex_length)
 
     expr = quote
-        deltas = zeros(SVector{$num_subsets, SVector{$simplex_length, $T}})
+        deltas = zero(SVector{$num_subsets, SVector{$simplex_length, $T}})
     end
 
     # Set the weight of every singleton subset to 1.
