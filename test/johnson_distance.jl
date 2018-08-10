@@ -28,7 +28,7 @@ end
 end
 
 @testset "random simplex" begin
-    srand(1)
+    Random.seed!(1)
     for i in 1:100
         simplex = SVector{4}([rand(SVector{3, Float64}) for i in 1:4])
         weights = projection_weights(simplex)
