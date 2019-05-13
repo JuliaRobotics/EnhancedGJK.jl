@@ -3,7 +3,8 @@ language: julia
 os:
   - linux
 julia:
-  - 0.7
+  - 1.0
+  - 1.1
   - nightly
 
 notifications:
@@ -16,5 +17,4 @@ branches:
     - master
     - /^v[0-9]+\.[0-9]+\.[0-9]+$/ # version tags
 after_success:
-  # push coverage results to Codecov
-  - julia -e 'cd(Pkg.dir("EnhancedGJK")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+  - julia --project -e 'using Pkg; pkg"add Coverage"; using Coverage; Codecov.submit(Codecov.process_folder())'

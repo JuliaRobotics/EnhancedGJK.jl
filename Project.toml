@@ -1,0 +1,31 @@
+name = "EnhancedGJK"
+uuid = "3d39a06a-b57e-5769-b499-4d62b23c243f"
+version = "0.3.0"
+
+[deps]
+CoordinateTransformations = "150eb455-5306-5404-9cee-2592286d6298"
+GeometryTypes = "4d00f742-c7ba-57c2-abde-4428a4b178cb"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
+
+[compat]
+BenchmarkTools = "≥ 0.0.5"
+CoordinateTransformations = "≥ 0.3.0"
+FileIO = "≥ 0.3.0"
+GeometryTypes = "≥ 0.4.0"
+MeshIO = "≥ 0.0.6"
+StaticArrays = "≥ 0.5.1"
+julia = "≥ 0.7.0"
+
+[extras]
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+FileIO = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+MeshIO = "7269a6da-0436-5bbc-96c2-40638cbb6118"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["FileIO", "Statistics", "LinearAlgebra", "Test", "Random", "BenchmarkTools", "MeshIO"]
