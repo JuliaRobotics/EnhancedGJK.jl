@@ -92,11 +92,11 @@ function gjk!(cache::CollisionCache,
             # in collision
             return GJKResult(
                 simplex,
-                dot(weights, cache.simplex_points),
+                transpose(weights) * cache.simplex_points,
                 penetration_distance(simplex)
             )
         end
-        best_point = dot(weights, simplex)
+        best_point = transpose(weights) * simplex
 
         direction = -best_point
         direction_in_A = rotAinv * direction
@@ -126,7 +126,7 @@ function gjk!(cache::CollisionCache,
         if score <= dot(best_point, direction) + atol || iter >= max_iter
             return GJKResult(
                 simplex,
-                dot(weights, cache.simplex_points),
+                transpose(weights) * cache.simplex_points,
                 norm(best_point)
             )
         else
@@ -142,7 +142,7 @@ function penetration_distance(simplex)
     _, penetration_distance = gt.argmax(1:length(simplex)) do i
         face = simplex_face(simplex, i)
         weights = projection_weights(face)
-        closest_point = dot(weights, face)
+        closest_point = transpose(weights) * face
         distance_to_face = norm(closest_point)
         -distance_to_face
     end

@@ -33,7 +33,7 @@ end
 function exterior_distance(face_points, target)
     simplex = convert(SVector, Simplex(face_points)) .- SVector((target,))
     weights = projection_weights(simplex)
-    projected = dot(weights, simplex)
+    projected = transpose(weights) * simplex
     norm(projected)
 end
 
