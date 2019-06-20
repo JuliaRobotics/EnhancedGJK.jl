@@ -63,6 +63,18 @@ end
     transform_simplex_impl(N, cache, poseA, poseB)
 end
 
+# Note: it looks like this can be replaced with transpose(weights) * points in Julia 1.3 (before that, it's a lot slower)
+@generated function linear_combination(weights::StaticVector{N}, points::StaticVector{N}) where {N}
+    expr = :(weights[1] * points[1])
+    for i = 2 : N
+        expr = :($expr + weights[$i] * points[$i])
+    end
+    return quote
+        Base.@_inline_meta
+        $expr
+    end
+end
+
 function transform_simplex_impl(N, cache, poseA, poseB)
     Expr(:call, :(SVector),
         [:((poseA(value(cache.simplex_points[$i].a)) -
@@ -92,11 +104,11 @@ function gjk!(cache::CollisionCache,
             # in collision
             return GJKResult(
                 simplex,
-                dot(weights, cache.simplex_points),
+                linear_combination(weights, cache.simplex_points),
                 penetration_distance(simplex)
             )
         end
-        best_point = dot(weights, simplex)
+        best_point = linear_combination(weights, simplex)
 
         direction = -best_point
         direction_in_A = rotAinv * direction
@@ -126,7 +138,7 @@ function gjk!(cache::CollisionCache,
         if score <= dot(best_point, direction) + atol || iter >= max_iter
             return GJKResult(
                 simplex,
-                dot(weights, cache.simplex_points),
+                linear_combination(weights, cache.simplex_points),
                 norm(best_point)
             )
         else
@@ -142,7 +154,7 @@ function penetration_distance(simplex)
     _, penetration_distance = gt.argmax(1:length(simplex)) do i
         face = simplex_face(simplex, i)
         weights = projection_weights(face)
-        closest_point = dot(weights, face)
+        closest_point = linear_combination(weights, face)
         distance_to_face = norm(closest_point)
         -distance_to_face
     end

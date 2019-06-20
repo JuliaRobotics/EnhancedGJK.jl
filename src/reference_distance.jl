@@ -1,7 +1,7 @@
 module ReferenceDistance
 
 using GeometryTypes
-import EnhancedGJK: projection_weights
+import EnhancedGJK: projection_weights, linear_combination
 import StaticArrays: SVector
 using LinearAlgebra
 
@@ -33,7 +33,7 @@ end
 function exterior_distance(face_points, target)
     simplex = convert(SVector, Simplex(face_points)) .- SVector((target,))
     weights = projection_weights(simplex)
-    projected = dot(weights, simplex)
+    projected = linear_combination(weights, simplex)
     norm(projected)
 end
 
