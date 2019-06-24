@@ -13,6 +13,33 @@ using FileIO
 
 const mesh_dir = joinpath(dirname(@__FILE__), "meshes")
 
+@testset "Issue #17" begin
+    # Note: when this test was written, it mattered whether it was the first
+    # test or not.
+    geomA = gt.FlexibleConvexHull(gt.Point{2,Float64}[
+        gt.Point(1.125, 2.0),
+        gt.Point(0.125, 2.0),
+        gt.Point(0.125, 2.8),
+        gt.Point(0.325, 3.0),
+        gt.Point(0.925, 3.0),
+        gt.Point(1.125, 2.8)]
+    )
+    geomB = gt.FlexibleConvexHull(gt.Point{2,Float64}[
+        gt.Point(-0.025, 1.2321067811865476),
+        gt.Point(-0.025, 1.2821067811865474),
+        gt.Point(0.3267766952966369, 1.2821067811865474),
+        gt.Point(0.3267766952966369, 1.2321067811865476)]
+    )
+
+    cache = CollisionCache(geomA, geomB)
+    poseA = poseB = IdentityTransformation()
+    simplex = EnhancedGJK.transform_simplex(cache, poseA, poseB)
+    @test isapprox(projection_weights(simplex), projection_weights_reference(simplex))
+
+    result = gjk(geomA, geomB)
+    @test result.signed_distance > 0
+end
+
 @testset "reference distance" begin
     mesh = load(joinpath(mesh_dir, "base_link.obj"))
     for x in range(0.05, stop=1, length=10)

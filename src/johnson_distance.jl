@@ -93,7 +93,7 @@ function projection_weights_impl(::Type{SVector{M, SVector{N, T}}}) where {M,N,T
                 deltas = setindex(deltas, setindex(deltas[$s2], d, $j), $s2)
             end)
             push!(expr.args, quote
-                if d > 0
+                if d > eps(T) # See #17
                     viable = false
                 end
             end)
