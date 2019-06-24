@@ -1,6 +1,6 @@
 name = "EnhancedGJK"
 uuid = "3d39a06a-b57e-5769-b499-4d62b23c243f"
-version = "0.3.1"
+version = "0.3.2"
 
 [deps]
 CoordinateTransformations = "150eb455-5306-5404-9cee-2592286d6298"
