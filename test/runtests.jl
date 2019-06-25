@@ -200,6 +200,12 @@ end
         cache = CollisionCache(pt1, pt2)
         result = gjk!(cache, IdentityTransformation(), IdentityTransformation())
         @test isapprox(result.signed_distance, norm(pt1 - pt2))
+
+        pt1 = gt.Point(1,2,3.)
+        pt2 = gt.Point(3,4,5.)
+        cache = CollisionCache(pt1, pt2)
+        result = gjk!(cache, IdentityTransformation(), IdentityTransformation())
+        @test isapprox(result.signed_distance, norm(pt1 - pt2))
     end
 
     @testset "gjk intersecting lines" begin

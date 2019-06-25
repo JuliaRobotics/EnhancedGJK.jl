@@ -30,3 +30,7 @@ end
 function any_inside(mesh::gt.AbstractMesh{gt.Point{N, T}}) where {N,T}
     Tagged(SVector(first(gt.vertices(mesh))))
 end
+
+function any_inside(point::gt.Point)
+    Tagged(SVector(point))
+end
