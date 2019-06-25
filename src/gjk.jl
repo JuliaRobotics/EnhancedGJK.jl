@@ -41,6 +41,10 @@ function support_vector_max(pt::gt.Vec{N, T}, direction, initial_guess::Tagged) 
     Tagged(SVector(pt))
 end
 
+function support_vector_max(pt::gt.Point{N, T}, direction, initial_guess::Tagged) where {N,T}
+    Tagged(SVector(pt))
+end
+
 function support_vector_max(simplex::Union{gt.AbstractSimplex, gt.AbstractFlexibleGeometry}, direction, initial_guess::Tagged)
     best_pt, score = gt.support_vector_max(simplex, gt.Vec(direction))
     Tagged(SVector(best_pt))
