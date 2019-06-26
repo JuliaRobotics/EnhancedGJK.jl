@@ -4,7 +4,7 @@ using LinearAlgebra
 using Random
 
 using EnhancedGJK
-using EnhancedGJK: projection_weights, projection_weights_reference
+using EnhancedGJK: projection_weights, projection_weights_reference, reset!
 using CoordinateTransformations: IdentityTransformation, Translation
 using StaticArrays: SVector
 import GeometryTypes
@@ -209,6 +209,19 @@ end
         c2 = gt.Simplex(gt.Vec(1,1.), gt.Vec(10, 2.))
         @test gjk(c1, c2).signed_distance == 0.
     end
+end
+
+@testset "reset!" begin
+    c1 = gt.FlexibleConvexHull([gt.Vec(0.,0), gt.Vec(0.,1), gt.Vec(1.,0),gt.Vec(1.,1)])
+    c2 = gt.Simplex(gt.Vec(4.,0.5))
+    cache = CollisionCache(c1, c2)
+    initial_simplex = deepcopy(cache.simplex_points)
+    gjk!(cache, IdentityTransformation(), IdentityTransformation())
+    @test cache.simplex_points != initial_simplex
+    reset!(cache)
+    @test cache.simplex_points == initial_simplex
+    allocs = @allocated reset!(cache)
+    @test allocs == 0
 end
 
 @testset "benchmarks" begin
