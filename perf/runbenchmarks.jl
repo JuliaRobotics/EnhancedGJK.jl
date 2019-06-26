@@ -1,7 +1,11 @@
 using BenchmarkTools
 using EnhancedGJK
+using CoordinateTransformations: IdentityTransformation, Translation
 import EnhancedGJK: projection_weights
+import GeometryTypes
 import StaticArrays: SVector
+
+const gt = GeometryTypes
 
 let
     suite = BenchmarkGroup()
