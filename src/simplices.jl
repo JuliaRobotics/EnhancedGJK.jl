@@ -18,3 +18,29 @@ function simplex_face_impl(simplex::SimplexType{M, N, T}, i) where {N,M,T}
     Expr(:call, :(SVector),
         Expr(:tuple, [:(i > $j ? simplex[$j] : simplex[$(j+1)]) for j in 1:(M - 1)]...))
 end
+
+
+"""
+    normal(face::StaticVector{N, <:StaticVector{N}})
+
+Return any `N`-vector normal to the face spanned by `N` points. The result is not necessarily normalized,
+nor is there any guarantee on winding.
+"""
+function normal end
+
+function normal(face::StaticVector{2, <:StaticVector{2}})
+    Δ = face[2] - face[1]
+    similar_type(Δ)(-Δ[2], Δ[1])
+end
+
+function normal(face::StaticVector{3, <:StaticVector{3}})
+    Δ1 = face[2] - face[1]
+    Δ2 = face[3] - face[1]
+    Δ1 × Δ2
+end
+
+function normal(face::StaticVector{N, <:StaticVector{N}}) where N
+    Δ = hcat(ntuple(i -> face[i + 1] - face[1], Val(N - 1))...)
+    factorization = svd(Δ, full=Val(true))
+    factorization.U[:, end]
+end
