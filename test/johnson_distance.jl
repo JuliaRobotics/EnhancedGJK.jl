@@ -37,3 +37,11 @@ end
         @test isapprox(weights, projection_weights_reference(simplex))
     end
 end
+
+@testset "numerical issues" begin
+    # This simplex is degenerate in that all z-coordinates are the same.
+    # Numerical issues due to floating point comparison can cause `projection_weights`
+    # to return positive weights.
+    simplex = SVector{4, SVector{3, Float64}}([-3.33728783796428, 0.3321305518800686, 0.11004228580261734], [-3.33728783796428, -0.6678694481199314, 0.11004228580261734], [1.6627121620357201, -0.6678694481199314, 0.11004228580261734], [1.6627121620357201, 0.3321305518800686, 0.11004228580261734])
+    @test any(x -> x < 0, projection_weights(simplex))
+end
