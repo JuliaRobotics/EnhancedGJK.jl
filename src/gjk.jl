@@ -91,10 +91,28 @@ end
 
 struct GJKResult{M, N, T}
     simplex::SVector{M, SVector{N, T}}
+    weights::SVector{M, T}
+    in_collision::Bool
     closest_point_in_body::Difference{SVector{N, T}, SVector{N, T}}
-    signed_distance::T
     iterations::Int
 end
+
+function Base.getproperty(result::GJKResult, sym::Symbol)
+    if sym === :signed_distance
+        @warn "The `signed_distance` field was removed. Please use the `separation_distance` and `simplex_penetration_distance` functions."
+        if result.in_collision
+            return -simplex_penetration_distance(result)
+        else
+            return separation_distance(result)
+        end
+    else
+        return Core.getfield(result, sym)
+    end
+end
+
+closest_point_in_world(result::GJKResult) = linear_combination(result.simplex, result.weights)
+separation_distance(result::GJKResult) = (@assert !result.in_collision; norm(closest_point_in_world(result)))
+simplex_penetration_distance(result::GJKResult) = penetration_distance(result.simplex)
 
 function gjk!(cache::CollisionCache,
               poseA::Transformation,
@@ -114,12 +132,8 @@ function gjk!(cache::CollisionCache,
             # Nominally in collision; but check for numerical issues
             separation_squared = best_point ⋅ best_point
             @assert separation_squared < sqrt(1_000_000 * eps(typeof(separation_squared)))
-            return GJKResult(
-                simplex,
-                linear_combination(weights, cache.simplex_points),
-                penetration_distance(simplex),
-                iter
-            )
+            closest_point_in_body = linear_combination(weights, cache.simplex_points)
+            return GJKResult(simplex, weights, true, closest_point_in_body, iter)
         end
 
         direction = -best_point
@@ -148,12 +162,8 @@ function gjk!(cache::CollisionCache,
         improved_point = poseA(value(improved_vertex.a)) - poseB(value(improved_vertex.b))
         score = dot(improved_point, direction)
         if score <= dot(best_point, direction) + atol || iter >= max_iter
-            return GJKResult(
-                simplex,
-                linear_combination(weights, cache.simplex_points),
-                norm(best_point),
-                iter
-            )
+            closest_point_in_body = linear_combination(weights, cache.simplex_points)
+            return GJKResult(simplex, weights, false, closest_point_in_body, iter)
         else
             cache.simplex_points[index_to_replace] = improved_vertex
             simplex = setindex(simplex, improved_point, index_to_replace)
@@ -174,7 +184,7 @@ function penetration_distance(simplex)
             best_dist_squared = dist_squared
         end
     end
-    return -sqrt(best_dist_squared)
+    return sqrt(best_dist_squared)
 end
 
 function gjk(geomA, geomB,
