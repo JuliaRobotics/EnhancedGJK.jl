@@ -2,8 +2,11 @@ using BenchmarkTools
 using EnhancedGJK
 import GeometryTypes
 using CoordinateTransformations: IdentityTransformation, Translation, AffineMap
-using EnhancedGJK: projection_weights, transform_simplex
+using EnhancedGJK: projection_weights, transform_simplex, penetration_distance
 using StaticArrays: SVector, SMatrix
+using Random
+
+Random.seed!(1)
 
 const gt = GeometryTypes
 
@@ -54,6 +57,13 @@ let
         poseA = AffineMap(rand(SMatrix{3, 3}), rand(SVector{3}))
         poseB = AffineMap(rand(SMatrix{3, 3}), rand(SVector{3}))
         gjk!(cache, poseA, poseB)
+    end
+
+    suite["penetration_distance"] = @benchmarkable penetration_distance(simplex) setup = begin
+        c1 = gt.HyperRectangle(rand(gt.Vec{3}), rand(gt.Vec{3}))
+        c2 = rand(gt.Vec{3})
+        result = gjk(c1, c2)
+        simplex = result.simplex
     end
 
     tune!(suite)
