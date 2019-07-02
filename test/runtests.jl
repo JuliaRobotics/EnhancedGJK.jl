@@ -4,7 +4,7 @@ using LinearAlgebra
 using Random
 
 using EnhancedGJK
-using EnhancedGJK: projection_weights, projection_weights_reference, reset!
+using EnhancedGJK: projection_weights, projection_weights_reference, reset!, normal
 using CoordinateTransformations: IdentityTransformation, Translation
 using StaticArrays: SVector
 import GeometryTypes
@@ -229,6 +229,16 @@ end
     @test cache.simplex_points == initial_simplex
     allocs = @allocated reset!(cache)
     @test allocs == 0
+end
+
+@testset "normal, N = $N" for N = 2 : 4
+    rng = MersenneTwister(1)
+    for j = 1 : 100
+        face = SVector{N}(ntuple(i -> rand(rng, SVector{N}), Val(N)))
+        n = normal(face)
+        dot_products = [point ⋅ n for point in face]
+        @test all(x -> isapprox(x, 0; atol=1e-10), dot_products .- mean(dot_products))
+    end
 end
 
 @testset "benchmarks" begin
