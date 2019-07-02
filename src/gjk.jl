@@ -71,6 +71,12 @@ end
     transform_simplex_impl(N, cache, poseA, poseB)
 end
 
+function transform_simplex_impl(N, cache, poseA, poseB)
+    Expr(:call, :(SVector),
+        [:((poseA(value(cache.simplex_points[$i].a)) -
+            poseB(value(cache.simplex_points[$i].b)))) for i in 1:(N + 1)]...)
+end
+
 # Note: it looks like this can be replaced with transpose(weights) * points in Julia 1.3 (before that, it's a lot slower)
 @generated function linear_combination(weights::StaticVector{N}, points::StaticVector{N}) where {N}
     expr = :(weights[1] * points[1])
@@ -81,12 +87,6 @@ end
         Base.@_inline_meta
         $expr
     end
-end
-
-function transform_simplex_impl(N, cache, poseA, poseB)
-    Expr(:call, :(SVector),
-        [:((poseA(value(cache.simplex_points[$i].a)) -
-            poseB(value(cache.simplex_points[$i].b)))) for i in 1:(N + 1)]...)
 end
 
 struct GJKResult{M, N, T}
