@@ -48,7 +48,7 @@ end
                 point = SVector(x, y, z)
                 gjk_dist = gjk(mesh, point)
                 simple_dist = ReferenceDistance.signed_distance(mesh, point)
-                @test isapprox(gjk_dist.signed_distance, simple_dist, atol=2e-4)
+                @test isapprox(gjk_dist.signed_distance, simple_dist, atol=1e-3)
             end
         end
     end

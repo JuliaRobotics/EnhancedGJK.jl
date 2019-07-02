@@ -1,0 +1,6 @@
+[deps]
+EnhancedGJK = "3d39a06a-b57e-5769-b499-4d62b23c243f"
+GeometryTypes = "4d00f742-c7ba-57c2-abde-4428a4b178cb"
+MeshCat = "283c5d60-a78f-5afe-a0af-af636b173e11"
+Polyhedra = "67491407-f73d-577b-9b50-8179a7c68029"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
