@@ -108,15 +108,17 @@ function gjk!(cache::CollisionCache,
     while true
         weights = projection_weights(simplex)
         min_weight, index_to_replace = findmin(weights)
+        best_point = linear_combination(weights, simplex)
         if min_weight > 0
-            # in collision
+            # Nominally in collision; but check for numerical issues
+            separation_squared = best_point ⋅ best_point
+            @assert separation_squared < sqrt(1_000_000 * eps(typeof(separation_squared)))
             return GJKResult(
                 simplex,
                 linear_combination(weights, cache.simplex_points),
                 penetration_distance(simplex)
             )
         end
-        best_point = linear_combination(weights, simplex)
 
         direction = -best_point
         direction_in_A = rotAinv * direction
