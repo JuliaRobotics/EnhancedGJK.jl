@@ -38,14 +38,22 @@ end
     end
 end
 
-@testset "numerical issues" begin
-    # This simplex is degenerate in that all z-coordinates are the same.
-    # Numerical issues due to floating point comparison can cause `projection_weights`
-    # to return positive weights.
-    simplex = SVector{4, SVector{3, Float64}}([-3.33728783796428, 0.3321305518800686, 0.11004228580261734], [-3.33728783796428, -0.6678694481199314, 0.11004228580261734], [1.6627121620357201, -0.6678694481199314, 0.11004228580261734], [1.6627121620357201, 0.3321305518800686, 0.11004228580261734])
+function test_no_penetration(simplex)
     weights = projection_weights(simplex)
     if all(x -> x > 0, weights)
         @show weights
         @test false
+    end
+end
+
+@testset "numerical issues" begin
+    # These simplices are degenerate in that all z-coordinates are the same.
+    # Numerical issues due to floating point comparison can cause `projection_weights`
+    # to return positive weights.
+    let simplex = SVector{4, SVector{3, Float64}}([-3.33728783796428, 0.3321305518800686, 0.11004228580261734], [-3.33728783796428, -0.6678694481199314, 0.11004228580261734], [1.6627121620357201, -0.6678694481199314, 0.11004228580261734], [1.6627121620357201, 0.3321305518800686, 0.11004228580261734])
+        test_no_penetration(simplex)
+    end
+    let simplex = SVector{4, SVector{3, Float64}}([-2.362029787803838, -0.4737843508044094, 0.11167470708499053], [2.637970212196162, 0.5262156491955906, 0.11167470708499053], [2.637970212196162, -0.4737843508044094, 0.11167470708499053], [-2.362029787803838, 0.5262156491955906, 0.11167470708499053])
+        test_no_penetration(simplex)
     end
 end
