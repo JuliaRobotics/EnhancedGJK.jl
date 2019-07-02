@@ -33,7 +33,7 @@ to precompute, inline, and unroll as much of the algorithm as possible. For a
 more readable (and much slower) implementation, see
 projection_weights_reference()
 """
-@generated function projection_weights(simplex::SVector{M, SVector{N, T}}) where {M,N,T}
+@generated function projection_weights(simplex::SVector{M, SVector{N, T}}; atol=sqrt(eps(T))) where {M,N,T}
     simplex_length = M
     num_subsets = num_johnson_subsets(M)
     subsets = johnson_subsets(M)
@@ -74,7 +74,7 @@ projection_weights_reference()
                 deltas = setindex(deltas, setindex(deltas[$s2], d, $j), $s2)
             end)
             push!(expr.args, quote
-                if d > eps(T) # See #17
+                if d > atol # See #17
                     viable = false
                 end
             end)
