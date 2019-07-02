@@ -164,14 +164,17 @@ function gjk!(cache::CollisionCache,
 end
 
 function penetration_distance(simplex)
-    _, minus_penetration_distance_squared = gt.argmax(1:length(simplex)) do i
+    best_dist_squared = nothing
+    for i in eachindex(simplex)
         face = simplex_face(simplex, i)
         weights = projection_weights(face)
         closest_point = linear_combination(weights, face)
-        -(closest_point ⋅ closest_point)
+        dist_squared = closest_point ⋅ closest_point
+        if best_dist_squared === nothing || dist_squared < best_dist_squared
+            best_dist_squared = dist_squared
+        end
     end
-    penetration_distance_squared = -minus_penetration_distance_squared
-    return -sqrt(penetration_distance_squared)
+    return -sqrt(best_dist_squared)
 end
 
 function gjk(geomA, geomB,
