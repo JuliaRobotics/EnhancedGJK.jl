@@ -93,6 +93,7 @@ struct GJKResult{M, N, T}
     simplex::SVector{M, SVector{N, T}}
     closest_point_in_body::Difference{SVector{N, T}, SVector{N, T}}
     signed_distance::T
+    iterations::Int
 end
 
 function gjk!(cache::CollisionCache,
@@ -116,7 +117,8 @@ function gjk!(cache::CollisionCache,
             return GJKResult(
                 simplex,
                 linear_combination(weights, cache.simplex_points),
-                penetration_distance(simplex)
+                penetration_distance(simplex),
+                iter
             )
         end
 
@@ -149,7 +151,8 @@ function gjk!(cache::CollisionCache,
             return GJKResult(
                 simplex,
                 linear_combination(weights, cache.simplex_points),
-                norm(best_point)
+                norm(best_point),
+                iter
             )
         else
             cache.simplex_points[index_to_replace] = improved_vertex
