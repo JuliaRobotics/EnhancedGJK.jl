@@ -16,7 +16,11 @@ export CollisionCache,
        gjk,
        GJKResult,
        NeighborMesh,
-       ReferenceDistance
+       ReferenceDistance,
+       closest_point_in_world,
+       closest_point_in_body,
+       separation_distance,
+       simplex_penetration_distance
 
 
 include("tagged_points.jl")
