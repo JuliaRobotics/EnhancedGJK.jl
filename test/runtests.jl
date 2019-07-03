@@ -37,7 +37,7 @@ const mesh_dir = joinpath(dirname(@__FILE__), "meshes")
     @test isapprox(projection_weights(simplex), projection_weights_reference(simplex))
 
     result = gjk(geomA, geomB)
-    @test result.signed_distance > 0
+    @test !result.in_collision
 end
 
 @testset "reference distance" begin
@@ -46,9 +46,13 @@ end
         for y in range(-1, stop=1, length=10)
             for z in range(-1, stop=1, length=10)
                 point = SVector(x, y, z)
-                gjk_dist = gjk(mesh, point)
+                result = gjk(mesh, point)
                 simple_dist = ReferenceDistance.signed_distance(mesh, point)
-                @test isapprox(gjk_dist.signed_distance, simple_dist, atol=1e-3)
+                if result.in_collision
+                    @test isapprox(simplex_penetration_distance(result), -simple_dist, atol=1e-3)
+                else
+                    @test isapprox(separation_distance(result), simple_dist, atol=1e-3)
+                end
             end
         end
     end
@@ -95,24 +99,21 @@ end
     for x in range(-width, stop=width, length=21)
         for y in range(-width, stop=width, length=21)
             z = 0.1
-            @test isapprox(gjk(geometry,
-                point,
-                IdentityTransformation(),
-                Translation(SVector(x, y, z))).signed_distance, 0.05)
+            let result = gjk(geometry, point, IdentityTransformation(), Translation(SVector(x, y, z)))
+                @test separation_distance(result) ≈ 0.05
+            end
             z = 0.06
-            @test isapprox(gjk(geometry,
-                    point,
-                    IdentityTransformation(),
-                    Translation(SVector(x, y, z))).signed_distance,
-                0.01,
-                atol=1e-12)
+            let result = gjk(geometry, point, IdentityTransformation(), Translation(SVector(x, y, z)))
+                @test separation_distance(result) ≈ 0.01 atol=1e-12
+            end
             z = 0.05
-            @test isapprox(gjk(geometry,
-                    point,
-                    IdentityTransformation(),
-                    Translation(SVector(x, y, z))).signed_distance,
-                0.0,
-                atol=1e-12)
+            let result = gjk(geometry, point, IdentityTransformation(), Translation(SVector(x, y, z)))
+                if result.in_collision
+                    @test simplex_penetration_distance(result) ≈ 0.0 atol=1e-12
+                else
+                    @test separation_distance(result) ≈ 0.0 atol=1e-12
+                end
+            end
         end
     end
 end
@@ -128,7 +129,7 @@ end
     pt = SVector(0., 0)
     cache = CollisionCache(simplex, pt);
     result = gjk!(cache, IdentityTransformation(), IdentityTransformation())
-    @test isapprox(result.signed_distance, 1.0)
+    @test isapprox(separation_distance(result), 1.0)
     @test isapprox(result.closest_point_in_body.a, [1.0, 0.0])
     @test isapprox(result.closest_point_in_body.b, [0.0, 0.0])
 end
@@ -140,17 +141,17 @@ end
 
     cache = CollisionCache(mesh, mesh)
     result = gjk!(cache, IdentityTransformation(), Translation(SVector(dx, 0, 0)))
-    @test isapprox(result.signed_distance, dx - foot_length, atol=1e-3)
+    @test isapprox(separation_distance(result), dx - foot_length, atol=1e-3)
 
     cache = CollisionCache(mesh, mesh)
     result = gjk!(cache, Translation(SVector(dx, 0, 0)), IdentityTransformation())
-    @test isapprox(result.signed_distance, dx - foot_length, atol=1e-3)
+    @test isapprox(separation_distance(result), dx - foot_length, atol=1e-3)
 
     cache = CollisionCache(mesh, mesh)
     expected_penetration = 0.01
     result = gjk!(cache, IdentityTransformation(), Translation(foot_length - expected_penetration, 0, 0))
     # TODO: penetration distance is inconsistent and inaccurate
-    @test result.signed_distance < 0
+    @test simplex_penetration_distance(result) > 0
 end
 
 @testset "neighbor mesh to mesh" begin
@@ -160,17 +161,17 @@ end
 
     cache = CollisionCache(mesh, mesh)
     result = gjk!(cache, IdentityTransformation(), Translation(SVector(dx, 0, 0)))
-    @test isapprox(result.signed_distance, dx - foot_length, atol=1e-3)
+    @test isapprox(separation_distance(result), dx - foot_length, atol=1e-3)
 
     cache = CollisionCache(mesh, mesh)
     result = gjk!(cache, Translation(SVector(dx, 0, 0)), IdentityTransformation())
-    @test isapprox(result.signed_distance, dx - foot_length, atol=1e-3)
+    @test isapprox(separation_distance(result), dx - foot_length, atol=1e-3)
 
     cache = CollisionCache(mesh, mesh)
     expected_penetration = 0.01
     result = gjk!(cache, IdentityTransformation(), Translation(foot_length - expected_penetration, 0, 0))
     # TODO: penetration distance is inconsistent and inaccurate
-    @test result.signed_distance < 0
+    @test simplex_penetration_distance(result) > 0
 end
 
 @testset "geometry types" begin
@@ -181,39 +182,39 @@ end
         c2 = gt.Simplex(gt.Vec(4.))
         cache = CollisionCache(c1, c2)
         result = gjk!(cache, IdentityTransformation(), IdentityTransformation())
-        @test isapprox(result.signed_distance, 5.0)
+        @test isapprox(separation_distance(result), 5.0)
 
         c1 = gt.Simplex(gt.Vec(-1.,0,0))
         c2 = gt.Simplex(gt.Vec(4.,0,0))
         cache = CollisionCache(c1, c2)
         result = gjk!(cache, IdentityTransformation(), IdentityTransformation())
-        @test isapprox(result.signed_distance, 5.0)
+        @test isapprox(separation_distance(result), 5.0)
 
         c1 = gt.FlexibleConvexHull([gt.Vec(0.,0), gt.Vec(0.,1), gt.Vec(1.,0),gt.Vec(1.,1)])
         c2 = gt.Simplex(gt.Vec(4.,0.5))
         cache = CollisionCache(c1, c2)
         result = gjk!(cache, IdentityTransformation(), IdentityTransformation())
-        @test isapprox(result.signed_distance, 3.0)
+        @test isapprox(separation_distance(result), 3.0)
 
         pt1 = gt.Vec(1,2,3.)
         pt2 = gt.Vec(3,4,5.)
         cache = CollisionCache(pt1, pt2)
         result = gjk!(cache, IdentityTransformation(), IdentityTransformation())
-        @test isapprox(result.signed_distance, norm(pt1 - pt2))
+        @test isapprox(separation_distance(result), norm(pt1 - pt2))
 
         pt1 = gt.Point(1,2,3.)
         pt2 = gt.Point(3,4,5.)
         cache = CollisionCache(pt1, pt2)
         result = gjk!(cache, IdentityTransformation(), IdentityTransformation())
-        @test isapprox(result.signed_distance, norm(pt1 - pt2))
+        @test isapprox(separation_distance(result), norm(pt1 - pt2))
     end
 
     @testset "gjk intersecting lines" begin
         c1 = gt.Simplex(gt.Vec(1,1.), gt.Vec(1, 2.))
-        @test gjk(c1, c1).signed_distance == 0.
+        @test simplex_penetration_distance(gjk(c1, c1)) == 0.
 
         c2 = gt.Simplex(gt.Vec(1,1.), gt.Vec(10, 2.))
-        @test gjk(c1, c2).signed_distance == 0.
+        @test simplex_penetration_distance(gjk(c1, c2)) == 0.
     end
 end
 

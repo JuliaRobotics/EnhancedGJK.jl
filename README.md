@@ -25,8 +25,8 @@ result = gjk(c1, c2)
 The return type of `gjk()` is a `GJKResult`, from which you can extract the signed distance between the two bodies:
 
 ```julia
-julia> @show result.signed_distance
-result.signed_distance = 2.0
+julia> @show separation_distance(result)
+separation_distance(result) = 2.0
 ```
 
 You can also access the closest point in each body to the other:
@@ -69,16 +69,28 @@ cache = CollisionCache(simplex, pt);
 # world frame.
 result = gjk!(cache, IdentityTransformation(), IdentityTransformation())
 
-# result.signed_distance will be > 0 if the objects are not in contact
-# and <= 0 if they are in collision.
-@show result.signed_distance
+# Check whether the geometries are in collision:
+@show result.in_collision
+
+# If the geometries are not in collision, an accurate distance between
+# the objects can be computed using
+@show separation_distance(result)
+
+# If the geometries *are* in collision, the GJK algorithm by itself cannot
+# compute an accurate measure of penetration distance. However, we can at
+# least obtain the distance to the nearest face of the simplex used in the
+# GJK algorithm to prove penetration, which is an underestimate of penetration
+# distance and can in certain cases be used as a proxy for it. This value can
+# be obtained using
+# simplex_penetration_distance(result)
 
 # We can perturb one of the geometries by changing its transformation.
 # Reusing the same cache will make this computation faster, expecially
 # for complex geometries when the change in transformation is small.
 result = gjk!(cache, Translation(SVector(0.1, 0)), IdentityTransformation())
 
-@show result.signed_distance
+@show result.in_collision
+@show separation_distance(result)
 ```
 
 ## Meshes
@@ -90,7 +102,7 @@ using MeshIO
 using FileIO
 mesh = load("test/meshes/r_foot_chull.obj")
 result = gjk(mesh, mesh, IdentityTransformation(), Translation(SVector(5., 0, 0)))
-@show result.signed_distance
+@show separation_distance(result)
 ```
 
 Note that this package *does not* check if the mesh is convex. Non-convex meshes may produce incorrect distance measurements.

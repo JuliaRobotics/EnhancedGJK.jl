@@ -111,6 +111,7 @@ function Base.getproperty(result::GJKResult, sym::Symbol)
 end
 
 closest_point_in_world(result::GJKResult) = linear_combination(result.simplex, result.weights)
+closest_point_in_body(result::GJKResult) = result.closest_point_in_body # just for symmetry with the world function
 separation_distance(result::GJKResult) = (@assert !result.in_collision; norm(closest_point_in_world(result)))
 simplex_penetration_distance(result::GJKResult) = penetration_distance(result.simplex)
 
