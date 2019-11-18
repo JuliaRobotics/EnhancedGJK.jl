@@ -241,6 +241,12 @@ end
     end
 end
 
+@testset "starting simplex is origin" begin
+    hr = gt.HyperRectangle{3, Float64}([-1.0, -1.0, -1.0], [2.0, 2.0, 2.0])
+    result = gjk(hr, hr)
+    @test result.in_collision
+end
+
 @testset "benchmarks" begin
     include("../perf/runbenchmarks.jl")
 end
