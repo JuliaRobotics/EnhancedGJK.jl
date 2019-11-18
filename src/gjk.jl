@@ -129,7 +129,8 @@ function gjk!(cache::CollisionCache,
         weights = projection_weights(simplex)
         min_weight, index_to_replace = findmin(weights)
         best_point = linear_combination(weights, simplex)
-        if min_weight > 0
+        if min_weight > 0 || best_point == zero(best_point)
+            # `simplex` contains the origin
             # Nominally in collision; but check for numerical issues
             separation_squared = best_point ⋅ best_point
             @assert separation_squared < sqrt(1_000_000 * eps(typeof(separation_squared)))
