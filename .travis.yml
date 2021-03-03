@@ -12,6 +12,7 @@ notifications:
 matrix:
   allow_failures:
     - julia: 1.0 # because of https://github.com/JuliaRobotics/EnhancedGJK.jl/pull/16#issuecomment-503319584
+    - julia: 1.1 # because of need for version range for MeshIO
     - julia: nightly
 branches:
   only:

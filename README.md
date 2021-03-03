@@ -101,7 +101,7 @@ result = gjk!(cache, Translation(SVector(0.1, 0)), IdentityTransformation())
 using MeshIO
 using FileIO
 mesh = load("test/meshes/r_foot_chull.obj")
-result = gjk(mesh, mesh, IdentityTransformation(), Translation(SVector(5., 0, 0)))
+result = EnhancedGJK.gjk(mesh, mesh, IdentityTransformation(), Translation(SVector(5., 0, 0)))
 @show separation_distance(result)
 ```
 
