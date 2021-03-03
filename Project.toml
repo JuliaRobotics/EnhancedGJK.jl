@@ -14,7 +14,7 @@ BenchmarkTools = "≥ 0.0.5"
 CoordinateTransformations = "≥ 0.3.0"
 FileIO = "≥ 0.3.0"
 GeometryTypes = "≥ 0.4.0"
-MeshIO = "≥ 0.0.6"
+MeshIO = "0.0.6 - 0.3.2"
 StaticArrays = "≥ 0.5.1"
 julia = "≥ 0.7.0"
 
