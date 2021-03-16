@@ -40,7 +40,7 @@ projection_weights_reference()
     complements = .!subsets
 
     expr = quote
-        deltas = SVector(tuple($([zero(SVector{simplex_length, T}) for i = 1 : num_subsets]...)))
+        deltas = zero(SVector{$num_subsets, SVector{$simplex_length, $T}})
     end
 
     # Set the weight of every singleton subset to 1.
