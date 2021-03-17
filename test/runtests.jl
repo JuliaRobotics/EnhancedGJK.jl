@@ -10,6 +10,7 @@ using StaticArrays: SVector
 import GeometryTypes
 const gt = GeometryTypes
 using FileIO
+using ForwardDiff
 
 const mesh_dir = joinpath(dirname(@__FILE__), "meshes")
 
@@ -249,4 +250,23 @@ end
 
 @testset "benchmarks" begin
     include("../perf/runbenchmarks.jl")
+end
+
+@testset "Issue #36" begin
+    function distance_from_segment(z)
+        p1 = GeometryTypes.Point(4.0, -0.5)
+        p2 = GeometryTypes.Point(6.0, 0.0)
+        l = GeometryTypes.LineSegment(p1, p2)
+        p = GeometryTypes.Point(5.0, z)
+        result = EnhancedGJK.gjk(l, p)
+        return result.in_collision ? 0.0 : separation_distance(result)
+    end
+
+    z = -1.0
+    δz = sqrt(eps(Float64))
+    deriv_autodiff = ForwardDiff.derivative(distance_from_segment, z)
+
+    # Check the autodiff result against finite difference
+    deriv_numeric = (distance_from_segment(z + δz) - distance_from_segment(z)) / δz
+    @test deriv_ad ≈ deriv_numeric
 end
