@@ -248,10 +248,6 @@ end
     @test result.in_collision
 end
 
-@testset "benchmarks" begin
-    include("../perf/runbenchmarks.jl")
-end
-
 @testset "Issue #36" begin
     function distance_from_segment(z)
         p1 = GeometryTypes.Point(4.0, -0.5)
@@ -263,10 +259,14 @@ end
     end
 
     z = -1.0
-    δz = sqrt(eps(Float64))
     deriv_autodiff = ForwardDiff.derivative(distance_from_segment, z)
 
     # Check the autodiff result against finite difference
+    δz = sqrt(eps(Float64))
     deriv_numeric = (distance_from_segment(z + δz) - distance_from_segment(z)) / δz
     @test deriv_ad ≈ deriv_numeric
+end
+
+@testset "benchmarks" begin
+    include("../perf/runbenchmarks.jl")
 end
