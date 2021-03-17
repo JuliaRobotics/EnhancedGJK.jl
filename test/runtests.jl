@@ -264,7 +264,7 @@ end
     # Check the autodiff result against finite difference
     δz = sqrt(eps(Float64))
     deriv_numeric = (distance_from_segment(z + δz) - distance_from_segment(z)) / δz
-    @test deriv_ad ≈ deriv_numeric
+    @test deriv_autodiff ≈ deriv_numeric
 end
 
 @testset "benchmarks" begin
